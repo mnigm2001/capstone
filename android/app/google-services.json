@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "894832029175",
+    "project_id": "meddetect-b9e38",
+    "storage_bucket": "meddetect-b9e38.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:894832029175:android:0bea4d64c26cdb4a4f52f2",
+        "android_client_info": {
+          "package_name": "com.example.meddetect_application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkTdRo2i-d32w6of18xoWE4i-wEXZm4_I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
