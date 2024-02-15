@@ -1,0 +1,14 @@
+black,"Black",#000,0,0,0
+blue,"Blue",#00f,0,0,255
+brown,"Brown (Traditional)",#964b00,150,75,0
+fire_engine_red,"Fire Engine Red",#ce2029,206,32,41
+gray,"Gray",#808080,128,128,128
+green_html_css_green,"Green (Html/Css Green)",#008000,0,128,0
+pink,"Light Pink",#f7667c,247,102,124
+maroon,"Maroon (Html/Css)",#800000,128,0,0
+medium_purple,"Medium Purple",#6A3BCA,106,59,202
+orange_color_wheel,"Orange (Color Wheel)",#ff7f00,255,127,0
+tan,"Tan",#d2b48c,210,180,140
+white,"White",#fff,255,255,255
+yellow,"Yellow",#ff0,255,255,0
+
