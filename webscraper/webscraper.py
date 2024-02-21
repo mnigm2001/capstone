@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 import requests
-import time
 import json
 import re
 
@@ -24,23 +23,18 @@ class MyDrug:
         return final_text
     
     ##Initial Search
-    def quickSearch(self, allDrugs_file, data):
+    #@param self: object of class MyDrug
+    #@param allDrugs_file: json file to store drug search list
+    #@param data: dict to store content
+    #@param type: single   (0) - returns only the first result
+    #             multiple (1) - returns a list of drugs
+    def quickSearch(self, allDrugs_file, data,mode=1):
         front_side = self.front_side
         back_side  = self.back_side
         color = self.color
         shape = self.shape
 
         outfile = open(allDrugs_file, "w")
-        # page = requests.get("https://quotes.toscrape.com")
-        # soup = BeautifulSoup(page.text, "html.parser")
-
-        # quotes = soup.findAll("span", attrs={"class":"text"})
-        # authors = soup.findAll("small", attrs={"class":"author"})
-
-        # for (quote,author) in zip(quotes,authors):
-        #     #print(f'{quote.text} - {author.text}')
-        #     print("kk")
-        #     print(quote.text + " - " + author.text)
 
         ############## DRUGS.COM ##################
         front_side = front_side.replace(" ", "+")#Removes any spaces inputted by the user 
@@ -58,26 +52,25 @@ class MyDrug:
         #print(drug_list_with_ads)
 
         #Excluding Ads
-        drug_list_without_ads = drug_list_with_ads.find_all("div", attrs={"class":"ddc-card"})
+        if(mode):
+            drug_list_without_ads = drug_list_with_ads.find_all("div", attrs={"class":"ddc-card"})
+        else:
+            drug_list_without_ads = drug_list_with_ads.find("div", attrs={"class":"ddc-card"})
+            drug_list_without_ads = [drug_list_without_ads]
         #print(drug_list_without_ads)
-        #print(len(drug_list_without_ads))
+        
 
-        #For Every Drug: 
-        # 1) Store a picture
-        # 2) Drug Name
-        # 3) Drug Strength
-        # 4) Imprint
-        # 5) color
-        # 6) Shape
+        #For Every Drug: 1) Store a picture 2) Drug Name 3) Drug Strength 4) Imprint 5) color 6) Shape
         
         drug_table_titles = ["Image", "Link", "Strength", "Imprint", "Color", "Shape"] 
         
         
         for drug in drug_list_without_ads:
             image = drug.find("img") #Extracting top image per drug
-            #print(image['src'])
+            #print(f"image: {image['src']}")
             
             label = drug.find("a") #Extracting drug's name + link
+            #print(f'label is {label}')
             name = label.text
             link = "https://www.drugs.com" + label['href']
 
@@ -89,15 +82,15 @@ class MyDrug:
         
         
 
-        if(len(data) == 0):
-            ############## WEBMD.COM (Separate function) ###############
-            url = f'https://www.webmd.com/pill-identification/search-results?imprint1={front_side}&imprint2={back_side}&color={color}&shape={shape}' 
-            drugs_page = requests.get(url, timeout=5)
-            content = BeautifulSoup(drugs_page.content, "html.parser")
-            print(content)
-            print(drugs_page.cookies)
-            drug_list = content.find("div", attrs={"class":"search-results"})
-            print(drug_list)
+        # if(len(data) == 0):
+        #     ############## WEBMD.COM (Separate function) ###############
+        #     url = f'https://www.webmd.com/pill-identification/search-results?imprint1={front_side}&imprint2={back_side}&color={color}&shape={shape}' 
+        #     drugs_page = requests.get(url, timeout=5)
+        #     content = BeautifulSoup(drugs_page.content, "html.parser")
+        #     print(content)
+        #     print(drugs_page.cookies)
+        #     drug_list = content.find("div", attrs={"class":"search-results"})
+        #     print(drug_list)
                 
         
 
@@ -106,6 +99,10 @@ class MyDrug:
         outfile.close()         
 
     ##Detailed Search
+    #@param self: object of class MyDrug
+    #@param name: name of the drug
+    #@param allDrugs_file: JSON file containing initial list of searched drugs
+    #@param oneDrug_file: JSON file to store drug's detailed content
     def detailedSearch(self, name, allDrugs_file, oneDrug_file):
         #Step 1: Fetch the link from data.json
         infile = open(allDrugs_file, "r")
@@ -118,7 +115,7 @@ class MyDrug:
         content = BeautifulSoup(drugs_page.content, "html.parser")
         
         outfile = open(oneDrug_file, "w")
-        li_dict = {"avoid_when": [], "side_effects":[]} #Append fields when ready
+        li_dict = {"avoid_when":[], "side_effects":{"common":[],"rare":[]}} #Append fields when ready
         #Step 3: Record 'avoid if'
         li_dict = self.avoidIf(content, li_dict)
 
@@ -131,10 +128,13 @@ class MyDrug:
         outfile.close()
 
     ##Avoid if search
+    #@param self: object of class MyDrug
+    #@param content: html page to scrape
+    #@param li_dict: variable to store scraped info
     def avoidIf(self, content, li_dict):
-        target_string = "Before taking this medicine" #header to start search from
+        target_string = "Before taking" #header to start search from
         first_target_header = content.find('h2', string=lambda s: target_string in str(s))
-        end_target_header = first_target_header.find_next("h2") #"end search" header
+        if first_target_header : end_target_header = first_target_header.find_next("h2") #"end search" header
         #print(f'{first_target_header} \n {end_target_header}')
         
         if first_target_header and end_target_header:
@@ -153,42 +153,41 @@ class MyDrug:
         
         return li_dict
     
+    ##Side effects search
+    #@param self: object of class MyDrug
+    #@param content: html page to scrape
+    #@param li_dict: variable to store scraped info
     def sideEffects(self,content,li_dict):
+        common_flag, rare_flag = 0,0 #Flags set to indicate type of side effect
         target_string = re.compile(r"side effects", re.IGNORECASE)
         first_target_header = content.find('h2', string=target_string)
         end_target_header = first_target_header.find_next("h2") #"end search" header
         print(f'{first_target_header} \n {end_target_header}')
         
         if first_target_header and end_target_header:
-            content_between_headers = first_target_header.find_all_next(['li', 'h2'])
+            content_between_headers = first_target_header.find_all_next(['li', 'h2', 'h3', 'p'])
             #print(content_between_headers)
             for _, item in enumerate(content_between_headers):
                 #end list after next header
                 if item == end_target_header:
-                    #content_between_headers = content_between_headers[:index]
                     break
+                #spotting common side effects
+                elif (("common" in item.text.lower()) or ("less serious" in item.text.lower())) and (item.name == 'p' or item.name == 'h3'):
+                    common_flag = 1
+                #spotting rare side effects    
+                elif (("stop" in item.text.lower()) or ("serious" in item.text.lower()) or ("call your doctor at once" in item.text)) and (item.name == 'p'):
+                    common_flag = 0
                 
-                #clear unecessary marks and append
-                li_dict["side_effects"].append(self.clear_text(item.get_text(strip=True)))
+                if(common_flag and item.name == 'li'):
+                    #clear unecessary marks and append
+                    li_dict["side_effects"]["common"].append(self.clear_text(item.get_text(strip=True)))
+                elif (not(common_flag) and item.name == 'li'):
+                    li_dict["side_effects"]["rare"].append(self.clear_text(item.get_text(strip=True)))
+                
 
             #print(li_dict["avoid_when"])
 
         return li_dict
     
-if __name__ == "__main__":
-    start = time.time()
-    #Global Variables
-    data = dict()
-    allDrugs_file = "allDrugs.json"
-    oneDrug_file = "oneDrug.json"
-    drug = MyDrug('I', '', '', '0')
 
-    #Calling the quick search function based on passed-in info
-    drug.quickSearch(allDrugs_file,data)
-
-    #Calling the detailed search after a drug is selected
-    drug.detailedSearch("Ibuprofen", allDrugs_file, oneDrug_file)
-
-    end = time.time()
-    print(f'\n\nElapsed time = {end - start} seconds')
     
