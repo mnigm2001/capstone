@@ -1,25 +1,39 @@
 import csv
 import boto3
 import cv2
-import matplotlib.pyplot as plt
-#from colour_detection import colour_detection
+import json
+from PIL import Image
+from colour_detection import colour_detection
+from shape_detection import shape_detection
 
 class image_recognition:
 
     def __init__(self,image):
         self.image = image
+        self.pill_detected = False
+        self.blur = 9
         self.setup_image_params()
         self.setup_client()
-        self.detect_labels()
-        self.crop_image()
-        self.detect_text()
+        self.detect_pill()
+
+    def detect_pill(self):
+        while (self.pill_detected == False):
+            self.blur +=2
+            self.Preprocessing(self.blur)
+            self.detect_labels()
+            self.crop_image()
+            self.detect_text()
+
+            if (self.blur > 30):
+                break
 
     def setup_image_params(self):
-        with open (self.image, 'rb') as source_image:
-            self.image_bytes = source_image.read()
-
         self.cv2_img = cv2.imread(self.image)
         self.H,self.W,_= self.cv2_img.shape
+
+        # with open (self.image_processed, 'rb') as source_image:
+        #     self.image_bytes = source_image.read()
+
     
     def setup_client(self):
         with open('test_accessKeys.csv','r') as input:
@@ -34,6 +48,12 @@ class image_recognition:
                       aws_access_key_id = access_key_id,
                       aws_secret_access_key = secret_access_key,
                       region_name='us-east-2',)
+    
+    def Preprocessing(self,blur=9):
+        blurred = cv2.GaussianBlur(self.cv2_img, (blur,blur), 0)
+        # cv2.imwrite('cv2_img_processed.jpg', blurred)
+        self.image_processed = cv2.imencode(".jpg", blurred)[1].tobytes()
+        self.image_bytes = self.image_processed
         
     def detect_labels(self):
         self.detected_labels = self.client.detect_labels(Image={'Bytes': self.image_bytes},
@@ -62,13 +82,16 @@ class image_recognition:
                     h_ = int(h * self.H)
                     w_ = int(w * self.W)
 
-            #frame = cv2.rectangle(self.cv2_img, (x_,y_),(x_+ w_,y_+h_), (0, 255, 0), 2)
-
+                    #frame = cv2.rectangle(self.cv2_img, (x_,y_),(x_+ w_,y_+h_), (0, 255, 0), 1)
+        
         if(len(self.class_names) > 0):
             self.pill_detected = True
             self.cropped_img = self.cv2_img[y_:y_+h_, x_:x_+w_]
+            
         else:
             self.pill_detected = False
+
+
 
 
     def detect_text(self):
@@ -76,21 +99,40 @@ class image_recognition:
             self.detected_text = self.client.detect_text(Image={'Bytes': cv2.imencode('.jpg', self.cropped_img)[1].tobytes()})
         else:
             self.detected_text = self.client.detect_text(Image={'Bytes': cv2.imencode('.jpg', self.cv2_img)[1].tobytes()})
-
+       
+        self.imprint = ""
         for label in self.detected_text ['TextDetections']:
                 if(len(label['DetectedText']) > 0):
                     self.imprint = label ['DetectedText']
                     break
 
 if __name__ == "__main__":
-    image = 'Pills/APOB10_oval.jpg'
+    image = 'Pills/CR500_hand.jpg'
+    result = {}
+    # "Pill Detected":"",
+    #     "Imprint":"",
+    #     "Colour",""
+    #     "Shape":""
 
     test = image_recognition(image)
-    print("Detected Text:", test.imprint)
 
-    # if(test.pill_detected):
-    #     test_colour = colour_detection(test.cropped_img)
-    #     print(test_colour.colour)
+    result["Pill Detected"] = test.pill_detected
+    result["Imprint"] = test.imprint
+
+    if(result["Pill Detected"]):
+        shape_test = shape_detection(test.cropped_img)
+    else:
+        shape_test = shape_detection(image)
+    result["Shape"] = shape_test.shape
+
+    
+    test_colour = colour_detection(shape_test.cropped_img)
+    result["Colour"] = test_colour.colour
+
+    result_json = json.dumps(result,indent=2)
+    print(result_json)
+
+
 
     
 
