@@ -34,6 +34,8 @@ dependencies:
   image_picker: ^0.8.5+3 # Check for the latest version on pub.dev
   firebase_core: ^2.24.2
   firebase_auth: ^4.16.0
+  flutter_local_notifications: ^17.0.0
+
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -80,7 +82,10 @@ flutter:
     - assets/images/blue.png
     - assets/images/green.png
     - assets/images/purple.png
-    
+    - assets/images/aspirin.png
+    - assets/images/amoxicillin.png
+    - assets/images/ibuprofen.png
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

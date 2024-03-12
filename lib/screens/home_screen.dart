@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:camera/camera.dart';
-import 'camera_screen.dart';
+import 'pills_screen.dart';
+import 'guest_options_screen.dart';
 import 'account_screen.dart'; // Import the AccountScreen
+import 'pill_details_screen.dart';
 
 class HomePage extends StatefulWidget {
   String firstName;
@@ -100,20 +101,15 @@ class _HomePageState extends State<HomePage> {
             children: <Widget>[
               ElevatedButton.icon(
                 onPressed: () async {
-                  final cameras = await availableCameras();
-                  final firstCamera = cameras.first;
-
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => CameraScreen(camera: firstCamera),
-                    ),
+                    MaterialPageRoute(builder: (context) => GuestOptionsScreen(showDisclaimer: false)),
                   );
                 },
                 icon: Icon(Icons.camera_alt,
                     color: Color(0xFF0A84FF)), // Camera icon for Scan button
                 // Add icon for Scan button
-                label: Text('Scan', style: TextStyle(color: Color(0xFF0A84FF))),
+                label: Text('Detect', style: TextStyle(color: Color(0xFF0A84FF))),
                 style: ElevatedButton.styleFrom(
                   primary: Colors.white, // Set the background color to white
                   onPrimary: Color(0xFF0A84FF), // Text color
@@ -121,7 +117,7 @@ class _HomePageState extends State<HomePage> {
               ),
               ElevatedButton.icon(
                 onPressed: () {
-                  // TODO: Implement Pills functionality
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PillsPage()));
                 },
                 icon: Icon(Icons.medical_services,
                     color: Color(0xFF0A84FF)), // Add icon for Pills button

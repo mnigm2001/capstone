@@ -3,6 +3,10 @@ import 'camera_screen.dart';
 import 'package:camera/camera.dart';
 
 class GuestOptionsScreen extends StatefulWidget {
+  final bool showDisclaimer;
+
+  GuestOptionsScreen({Key? key, this.showDisclaimer = true}) : super(key: key);
+
   @override
   _GuestOptionsScreenState createState() => _GuestOptionsScreenState();
 }
@@ -11,7 +15,7 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
   final TextEditingController _colorController = TextEditingController();
   final TextEditingController _imprint1Controller = TextEditingController();
   final TextEditingController _imprint2Controller = TextEditingController();
-  String? _selectedShape; // Variable to hold the selected shape
+  String? _selectedShape;
   String? _selectedColor;
   final List<String> _colors = [
     'White',
@@ -21,22 +25,18 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
     'Blue',
     'Green',
     'Purple'
-  ]; // Placeholder color list
-  final List<String> _shapes = [
-    'Round',
-    'Oblong',
-    'Oval'
-  ]; // Placeholder shape list
+  ];
+  final List<String> _shapes = ['Round', 'Oblong', 'Oval'];
 
-  final TextStyle commonTextStyle =
-      const TextStyle(color: Color(0xFF0A84FF), fontSize: 20);
-  final EdgeInsets commonPadding = const EdgeInsets.symmetric(vertical: 15);
+  final TextStyle commonTextStyle = TextStyle(color: Color(0xFF0A84FF), fontSize: 20);
+  final EdgeInsets commonPadding = EdgeInsets.symmetric(vertical: 15);
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _showDisclaimerDialog(context));
+    if (widget.showDisclaimer) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showDisclaimerDialog(context));
+    }
   }
 
   void _showDisclaimerDialog(BuildContext context) {
@@ -47,8 +47,7 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("Disclaimer!"),
-          content: Text(
-              "Results may not be perfect, contact your physician for serious concerns. Do you wish to proceed?"),
+          content: Text("Results may not be perfect, contact your physician for serious concerns. Do you wish to proceed?"),
           actions: <Widget>[
             TextButton(
               child: Text("Yes"),
@@ -62,8 +61,7 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
             TextButton(
               child: Text("No"),
               onPressed: () {
-                Navigator.of(context).popUntil(
-                    (route) => route.isFirst); // Go back to the login page
+                Navigator.of(context).popUntil((route) => route.isFirst); // Go back to the login page
               },
               style: TextButton.styleFrom(
                 primary: Color(0xFF0A84FF), // Blue color for text
