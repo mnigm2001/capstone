@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'pill.dart';
+import 'pill.dart'; // Import your Pill model
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -14,13 +14,15 @@ class PillDetailsScreen extends StatefulWidget {
 }
 
 class _PillDetailsScreenState extends State<PillDetailsScreen> {
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
     super.initState();
     tz.initializeTimeZones();
-    var initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+    var initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
     var initializationSettingsIOS = DarwinInitializationSettings();
     var initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
@@ -58,7 +60,8 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
     }
   }
 
-  void _showRepeatIntervalSelection(BuildContext context, DateTime scheduledDateTime) {
+  void _showRepeatIntervalSelection(
+      BuildContext context, DateTime scheduledDateTime) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -77,7 +80,8 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
                 title: Text('Hourly'),
                 onTap: () {
                   Navigator.pop(context);
-                  _scheduleNotification(scheduledDateTime, RepeatInterval.hourly);
+                  _scheduleNotification(
+                      scheduledDateTime, RepeatInterval.hourly);
                 },
               ),
               ListTile(
@@ -85,7 +89,8 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
                 title: Text('Daily'),
                 onTap: () {
                   Navigator.pop(context);
-                  _scheduleNotification(scheduledDateTime, RepeatInterval.daily);
+                  _scheduleNotification(
+                      scheduledDateTime, RepeatInterval.daily);
                 },
               ),
               // Add more intervals as needed
@@ -96,7 +101,25 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
     );
   }
 
-  Future<void> _scheduleNotification(DateTime scheduledNotificationDateTime, RepeatInterval? repeatInterval) async {
+  String getReminderMessage(String pillName, DateTime scheduledTime) {
+    int hour = scheduledTime.hour;
+    String partOfDay;
+
+    if (hour >= 6 && hour < 12) {
+      partOfDay = 'morning';
+    } else if (hour >= 12 && hour < 18) {
+      partOfDay = 'afternoon';
+    } else if (hour >= 18 && hour < 22) {
+      partOfDay = 'evening';
+    } else {
+      partOfDay = 'night';
+    }
+
+    return "Don't forget to take your $partOfDay $pillName";
+  }
+
+  Future<void> _scheduleNotification(DateTime scheduledNotificationDateTime,
+      RepeatInterval? repeatInterval) async {
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'med_reminder_id',
       'Medication Reminder',
@@ -111,11 +134,14 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
       iOS: iOSPlatformChannelSpecifics,
     );
 
+    String notificationMessage =
+        getReminderMessage(widget.pill.name, scheduledNotificationDateTime);
+
     if (repeatInterval != null) {
       flutterLocalNotificationsPlugin.periodicallyShow(
         0, // Notification ID
         'Pill Reminder', // Notification Title
-        'Don\'t forget to take your ${widget.pill.name}', // Notification Body
+        notificationMessage, // Customized Notification Body
         repeatInterval,
         platformChannelSpecifics,
         androidAllowWhileIdle: true,
@@ -124,8 +150,9 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
       flutterLocalNotificationsPlugin.zonedSchedule(
         0, // Notification ID
         'Pill Reminder', // Notification Title
-        'Don\'t forget to take your ${widget.pill.name}', // Notification Body
-        tz.TZDateTime.from(scheduledNotificationDateTime, tz.local), // Scheduled Date & Time
+        notificationMessage, // Customized Notification Body
+        tz.TZDateTime.from(
+            scheduledNotificationDateTime, tz.local), // Scheduled Date & Time
         platformChannelSpecifics,
         androidAllowWhileIdle: true,
         uiLocalNotificationDateInterpretation:
