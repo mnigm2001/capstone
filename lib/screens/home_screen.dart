@@ -61,7 +61,7 @@ class _HomePageState extends State<HomePage> {
             TextButton(
               child: Text("Understood"),
               style: TextButton.styleFrom(
-                primary: Color(0xFF0A84FF), // Blue color for text
+                foregroundColor: Color(0xFF0A84FF), // Blue color for text
               ),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -111,8 +111,8 @@ class _HomePageState extends State<HomePage> {
                 // Add icon for Scan button
                 label: Text('Detect', style: TextStyle(color: Color(0xFF0A84FF))),
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.white, // Set the background color to white
-                  onPrimary: Color(0xFF0A84FF), // Text color
+                  backgroundColor: Colors.white, // Set the background color to white
+                  foregroundColor: Color(0xFF0A84FF), // Text color
                 ),
               ),
               ElevatedButton.icon(
@@ -124,8 +124,8 @@ class _HomePageState extends State<HomePage> {
                 label:
                     Text('Pills', style: TextStyle(color: Color(0xFF0A84FF))),
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.white,
-                  onPrimary: Color(0xFF0A84FF),
+                  backgroundColor: Colors.white,
+                  foregroundColor: Color(0xFF0A84FF),
                 ),
               ),
               ElevatedButton.icon(
@@ -146,8 +146,8 @@ class _HomePageState extends State<HomePage> {
                 label:
                     Text('Account', style: TextStyle(color: Color(0xFF0A84FF))),
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.white,
-                  onPrimary: Color(0xFF0A84FF),
+                  backgroundColor: Colors.white,
+                  foregroundColor: Color(0xFF0A84FF),
                 ),
               ),
             ],

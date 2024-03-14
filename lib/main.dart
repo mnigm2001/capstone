@@ -2,28 +2,23 @@ import 'package:flutter/material.dart';
 import 'screens/login_screen.dart';
 import 'screens/create_account_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart'; // This is assuming firebase_options.dart is in the root of the lib directory
+import 'firebase_options.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter_native_timezone_updated_gradle/flutter_native_timezone.dart';
 
 void main() async {
-  WidgetsFlutterBinding
-      .ensureInitialized(); // Required for async main to work correctly before runApp
-    // Initialize the plugin
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-  var initializationSettingsAndroid =
-      AndroidInitializationSettings('app_icon'); // Place your app icon here
-  var initializationSettingsIOS = DarwinInitializationSettings();
-  var initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions
-        .currentPlatform, // This uses the options from your firebase_options.dart
-  );
+  WidgetsFlutterBinding.ensureInitialized();
+  await _configureLocalTimeZone();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MyApp());
+}
+
+Future<void> _configureLocalTimeZone() async {
+  tz.initializeTimeZones(); // Initialize timezone data
+  final String timeZoneName = await FlutterNativeTimezone.getLocalTimezone();
+  tz.setLocalLocation(tz.getLocation(timeZoneName));
 }
 
 class MyApp extends StatelessWidget {
@@ -33,16 +28,13 @@ class MyApp extends StatelessWidget {
       title: 'Login Page',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        primaryColor: Color(0xFF0A84FF), // Set your primary color here
+        primaryColor: Color(0xFF0A84FF),
         visualDensity: VisualDensity.adaptivePlatformDensity,
         textSelectionTheme: TextSelectionThemeData(
-          selectionHandleColor:
-              Color(0xFF0A84FF), // Set your desired color here
+          selectionHandleColor: Color(0xFF0A84FF),
         ),
       ),
-      // Define the initial route
       initialRoute: '/',
-      // Define the routes table
       routes: {
         '/': (context) => LoginScreen(),
         '/createAccount': (context) => CreateAccountScreen(),

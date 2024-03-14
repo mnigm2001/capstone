@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'pill.dart'; // Import your Pill model
+import 'pill.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class PillDetailsScreen extends StatefulWidget {
   final Pill pill;
@@ -11,28 +14,39 @@ class PillDetailsScreen extends StatefulWidget {
 }
 
 class _PillDetailsScreenState extends State<PillDetailsScreen> {
-  // This function shows a date picker dialog and returns the chosen date.
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+  @override
+  void initState() {
+    super.initState();
+    tz.initializeTimeZones();
+    var initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+    var initializationSettingsIOS = DarwinInitializationSettings();
+    var initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS,
+    );
+    flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
   Future<void> _pickDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
-      lastDate: DateTime(2100),
+      lastDate: DateTime(2101),
     );
     if (pickedDate != null) {
-      // Once a date is picked, proceed to pick a time.
       _pickTime(context, pickedDate);
     }
   }
 
-  // This function shows a time picker dialog and combines the chosen time with the provided date.
   Future<void> _pickTime(BuildContext context, DateTime pickedDate) async {
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
     );
     if (pickedTime != null) {
-      // Combine the date and time into a single DateTime object.
       DateTime finalDateTime = DateTime(
         pickedDate.year,
         pickedDate.month,
@@ -40,9 +54,84 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
         pickedTime.hour,
         pickedTime.minute,
       );
-      // Here, you can call your function to schedule the reminder.
-      // For demonstration, we'll just print the selected date and time.
-      print("Reminder set for: $finalDateTime");
+      _showRepeatIntervalSelection(context, finalDateTime);
+    }
+  }
+
+  void _showRepeatIntervalSelection(BuildContext context, DateTime scheduledDateTime) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                  leading: Icon(Icons.calendar_today),
+                  title: Text('No Repeat'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _scheduleNotification(scheduledDateTime, null);
+                  }),
+              ListTile(
+                leading: Icon(Icons.repeat),
+                title: Text('Hourly'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _scheduleNotification(scheduledDateTime, RepeatInterval.hourly);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.repeat),
+                title: Text('Daily'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _scheduleNotification(scheduledDateTime, RepeatInterval.daily);
+                },
+              ),
+              // Add more intervals as needed
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _scheduleNotification(DateTime scheduledNotificationDateTime, RepeatInterval? repeatInterval) async {
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'med_reminder_id',
+      'Medication Reminder',
+      channelDescription: 'Channel for Medication Reminder',
+      importance: Importance.max,
+      priority: Priority.high,
+      showWhen: false,
+    );
+    var iOSPlatformChannelSpecifics = DarwinNotificationDetails();
+    var platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: iOSPlatformChannelSpecifics,
+    );
+
+    if (repeatInterval != null) {
+      flutterLocalNotificationsPlugin.periodicallyShow(
+        0, // Notification ID
+        'Pill Reminder', // Notification Title
+        'Don\'t forget to take your ${widget.pill.name}', // Notification Body
+        repeatInterval,
+        platformChannelSpecifics,
+        androidAllowWhileIdle: true,
+      );
+    } else {
+      flutterLocalNotificationsPlugin.zonedSchedule(
+        0, // Notification ID
+        'Pill Reminder', // Notification Title
+        'Don\'t forget to take your ${widget.pill.name}', // Notification Body
+        tz.TZDateTime.from(scheduledNotificationDateTime, tz.local), // Scheduled Date & Time
+        platformChannelSpecifics,
+        androidAllowWhileIdle: true,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
     }
   }
 
@@ -62,14 +151,14 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start, // Aligns items at the start of the cross axis
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(top: 8.0), // Adjust the top padding here
+                        padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
                           widget.pill.name,
                           style: TextStyle(
@@ -80,7 +169,7 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
                         ),
                       ),
                       Text(
-                        widget.pill.dosage, // Add the dosage here
+                        widget.pill.dosage,
                         style: TextStyle(
                           color: Color(0xFF0A84FF),
                           fontSize: 18,
@@ -89,7 +178,6 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
                     ],
                   ),
                 ),
-                // Ensure there's no extra padding/margin affecting alignment
                 Image.asset(
                   widget.pill.imageUrl,
                   width: 125,
@@ -121,13 +209,13 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
                 fontSize: 18,
               ),
             ),
-            Spacer(), // This will push the button to the bottom of the screen
+            Spacer(),
             ElevatedButton(
               onPressed: () => _pickDate(context),
               child: Text('Set Reminder'),
               style: ElevatedButton.styleFrom(
-                primary: Color(0xFF0A84FF),
-                onPrimary: Colors.white,
+                backgroundColor: Color(0xFF0A84FF),
+                foregroundColor: Colors.white,
               ),
             ),
           ],

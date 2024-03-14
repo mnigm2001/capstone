@@ -317,8 +317,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       onPressed: _tryCreateAccount,
                       child: Text('Create Account'),
                       style: ElevatedButton.styleFrom(
-                        primary: Color(0xFF0A84FF),
-                        onPrimary: Colors.white,
+                        backgroundColor: Color(0xFF0A84FF),
+                        foregroundColor: Colors.white,
                         textStyle: TextStyle(fontSize: 16),
                         padding:
                             EdgeInsets.symmetric(vertical: 15, horizontal: 15),

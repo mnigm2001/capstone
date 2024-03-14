@@ -19,23 +19,23 @@ class _PillsPageState extends State<PillsPage> {
       sideEffects: "Side Effects: May cause nausea, vomiting, or upset stomach.",
     ),
     Pill(
-      name: "Amoxicillin", 
-      dosage: "875 mg", 
+      name: "Amoxicillin",
+      dosage: "875 mg",
       description: "Bacterial Treater",
       imageUrl: "assets/images/amoxicillin.png",
       purpose: "Purpose: Commonly used to treat a wide variety of bacterial infections. It's particularly effective against infections in the ear, nose, throat, urinary tract, skin, and lower respiratory system.",
       applicationMethod: "Application: Often taken orally with water, and can be taken with or without food.",
       sideEffects: "Side Effects: May cause nausea, vomiting, or diarrhea. Allergic reactions are possible, especially in individuals with a history of penicillin allergy"
-      ),
+    ),
     Pill(
-      name: "Ibuprofen", 
-      dosage: "200 mg", 
+      name: "Ibuprofen",
+      dosage: "200 mg",
       description: "Anti-inflammatory",
       imageUrl: "assets/images/ibuprofen.png",
       purpose: "Purpose: Widely used as an analgesic for relieving pain, as an antipyretic for reducing fever, and as an anti-inflammatory medication. Effective for treating headaches, toothaches, back pain, arthritis, menstrual cramps, and minor injuries.",
       applicationMethod: "Application: usually taken orally with a full glass of water, and it's recommended to take it with food or milk to decrease the chance of stomach upset.",
-      sideEffects: "Side Effects: May cause upset stomach, nausea, dizziness, or drowsiness. More serious but rare side effects include heart problems or gastrointestinal bleeding.")
-      ,
+      sideEffects: "Side Effects: May cause upset stomach, nausea, dizziness, or drowsiness. More serious but rare side effects include heart problems or gastrointestinal bleeding."
+    ),
   ];
 
   @override
@@ -44,24 +44,27 @@ class _PillsPageState extends State<PillsPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        iconTheme: IconThemeData(
-            color: Color(0xFF0A84FF)),
+        iconTheme: IconThemeData(color: Color(0xFF0A84FF)),
       ),
-      body: ListView.builder(
+      body: ListView.separated(
         itemCount: pills.length,
         itemBuilder: (context, index) {
           final pill = pills[index];
           return ListTile(
-            title: Text(pill.name, 
-            style: TextStyle(color: Color(0xFF0A84FF), 
-            fontSize: 25, 
-            fontWeight: FontWeight.bold,
+            title: Text(
+              pill.name,
+              style: TextStyle(
+                color: Color(0xFF0A84FF),
+                fontSize: 25,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            ),
-            subtitle: Text('${pill.dosage} - ${pill.description}',
-            style: TextStyle(color: Color(0xFF0A84FF), 
-            fontSize: 17.5
-            ),
+            subtitle: Text(
+              '${pill.dosage} - ${pill.description}',
+              style: TextStyle(
+                color: Color(0xFF0A84FF),
+                fontSize: 17.5,
+              ),
             ),
             onTap: () {
               // Navigate to the Pill Details Page with the selected pill's details
@@ -74,6 +77,7 @@ class _PillsPageState extends State<PillsPage> {
             },
           );
         },
+        separatorBuilder: (context, index) => Divider(),
       ),
     );
   }

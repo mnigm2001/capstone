@@ -55,7 +55,7 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
                 Navigator.of(context).pop(); // Dismiss the dialog
               },
               style: TextButton.styleFrom(
-                primary: Color(0xFF0A84FF), // Blue color for text
+                foregroundColor: Color(0xFF0A84FF), // Blue color for text
               ),
             ),
             TextButton(
@@ -64,7 +64,7 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
                 Navigator.of(context).popUntil((route) => route.isFirst); // Go back to the login page
               },
               style: TextButton.styleFrom(
-                primary: Color(0xFF0A84FF), // Blue color for text
+                foregroundColor: Color(0xFF0A84FF), // Blue color for text
               ),
             ),
           ],
@@ -241,8 +241,8 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
                   },
                   child: const Text('Scan'),
                   style: ElevatedButton.styleFrom(
-                    primary: Color(0xFF0A84FF),
-                    onPrimary: Colors.white,
+                    backgroundColor: Color(0xFF0A84FF),
+                    foregroundColor: Colors.white,
                     textStyle: commonTextStyle,
                     padding: commonPadding,
                   ),
@@ -282,8 +282,8 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
                       onPressed: _performSearch,
                       child: const Text('Search'),
                       style: ElevatedButton.styleFrom(
-                        primary: Color(0xFF0A84FF),
-                        onPrimary: Colors.white,
+                        backgroundColor: Color(0xFF0A84FF),
+                        foregroundColor: Colors.white,
                         textStyle: commonTextStyle,
                         padding: commonPadding,
                       ),

@@ -82,7 +82,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 onPressed: () => _updateDisplayName(),
                 child: Text('Update Name'),
                 style: ElevatedButton.styleFrom(
-                    primary: Color(0xFF0A84FF), onPrimary: Colors.white),
+                    backgroundColor: Color(0xFF0A84FF), foregroundColor: Colors.white),
               ),
               SizedBox(height: 20),
               TextField(
@@ -173,13 +173,13 @@ class _AccountScreenState extends State<AccountScreen> {
                 onPressed: () => _changePassword(context),
                 child: Text('Change Password'),
                 style: ElevatedButton.styleFrom(
-                    primary: Color(0xFF0A84FF), onPrimary: Colors.white),
+                    backgroundColor: Color(0xFF0A84FF), foregroundColor: Colors.white),
               ),
               ElevatedButton(
                 onPressed: () => _signOut(context),
                 child: Text('Log Out'),
                 style: ElevatedButton.styleFrom(
-                    primary: Color(0xFF0A84FF), onPrimary: Colors.white),
+                    backgroundColor: Color(0xFF0A84FF), foregroundColor: Colors.white),
               ),
             ],
           ),
