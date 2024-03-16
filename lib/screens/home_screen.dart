@@ -103,7 +103,7 @@ class _HomePageState extends State<HomePage> {
                     Text('Pills', style: TextStyle(color: Color(0xFF0A84FF))),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  onPrimary: Color(0xFF0A84FF),
+                  foregroundColor: Color(0xFF0A84FF),
                 ),
               ),
             ),
@@ -122,7 +122,7 @@ class _HomePageState extends State<HomePage> {
                     style: TextStyle(color: Color(0xFF0A84FF))),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  onPrimary: Color(0xFF0A84FF),
+                  foregroundColor: Color(0xFF0A84FF),
                 ),
               ),
             ),
@@ -141,7 +141,7 @@ class _HomePageState extends State<HomePage> {
                     Text('Account', style: TextStyle(color: Color(0xFF0A84FF))),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  onPrimary: Color(0xFF0A84FF),
+                  foregroundColor: Color(0xFF0A84FF),
                 ),
               ),
             ),
