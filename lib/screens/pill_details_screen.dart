@@ -270,6 +270,20 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    AwesomeNotifications().initialize(
+      'resource://drawable/ic_stat_notify', // <-- Specify your icon here
+      [
+        NotificationChannel(
+          channelKey: 'basic_channel',
+          channelName: 'Basic notifications',
+          channelDescription: 'Notification channel for basic tests',
+          defaultColor: Color(0xFF9D50DD),
+          ledColor: Colors.white,
+          importance: NotificationImportance.High,
+          channelShowBadge: true,
+        ),
+      ],
+    );
     AwesomeNotifications().isNotificationAllowed().then(
       (isAllowed) {
         if (!isAllowed) {
@@ -304,32 +318,77 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
         pickedTime.hour,
         pickedTime.minute,
       );
-      _scheduleNotification(finalDateTime);
+      _showRepeatIntervalSelection(context, finalDateTime);
     }
   }
 
+  void _showRepeatIntervalSelection(
+      BuildContext context, DateTime scheduledDateTime) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Repeat Daily?'),
+          content: Text('Would you like to set this reminder to repeat daily?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _scheduleNotification(scheduledDateTime, false);
+              },
+              child: Text('No'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _scheduleNotification(scheduledDateTime, true);
+              },
+              child: Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _scheduleNotification(
-      DateTime scheduledNotificationDateTime) async {
+      DateTime scheduledNotificationDateTime, bool repeatDaily) async {
     String notificationBody =
         getReminderMessage(widget.pill.name, scheduledNotificationDateTime);
 
-    await AwesomeNotifications().createNotification(
-      content: NotificationContent(
-        id: createUniqueId(),
-        channelKey: 'basic_channel',
-        title: 'Pill Reminder',
-        body: notificationBody,
-        notificationLayout: NotificationLayout.Default,
-      ),
-      actionButtons: [
-        NotificationActionButton(
-          key: 'MARK_DONE',
-          label: 'Mark as Done',
+    if (repeatDaily) {
+      await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: createUniqueId(),
+          channelKey: 'basic_channel',
+          title: 'Pill Reminder',
+          body: notificationBody,
+          notificationLayout: NotificationLayout.Default,
         ),
-      ],
-      schedule:
-          NotificationCalendar.fromDate(date: scheduledNotificationDateTime),
-    );
+        schedule: NotificationCalendar(
+          year: scheduledNotificationDateTime.year,
+          month: scheduledNotificationDateTime.month,
+          day: scheduledNotificationDateTime.day,
+          hour: scheduledNotificationDateTime.hour,
+          minute: scheduledNotificationDateTime.minute,
+          second: 0,
+          millisecond: 0,
+          repeats: true,
+        ),
+      );
+    } else {
+      await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: createUniqueId(),
+          channelKey: 'basic_channel',
+          title: 'Pill Reminder',
+          body: notificationBody,
+          notificationLayout: NotificationLayout.Default,
+        ),
+        schedule:
+            NotificationCalendar.fromDate(date: scheduledNotificationDateTime),
+      );
+    }
   }
 
   String getReminderMessage(String pillName, DateTime scheduledTime) {
@@ -343,7 +402,7 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
     } else if (hour >= 18 && hour < 22) {
       partOfDay = 'evening';
     } else {
-      partOfDay = 'night';
+      partOfDay = 'night time';
     }
 
     return "Don't forget to take your $partOfDay $pillName";
