@@ -86,7 +86,7 @@ class _HomePageState extends State<HomePage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
                       Colors.white, // Set the background color to white
-                  onPrimary: Color(0xFF0A84FF), // Text color
+                  foregroundColor: Color(0xFF0A84FF), // Text color
                 ),
               ),
             ),
