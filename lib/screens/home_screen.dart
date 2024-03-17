@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     double buttonWidth =
-        200.0; // Arbitrary width to fit the "Reminders" text and icon
+        150.0; // Arbitrary width to fit the "Reminders" text and icon
 
     return Scaffold(
       backgroundColor: Colors.white,

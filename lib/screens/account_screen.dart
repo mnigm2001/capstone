@@ -38,10 +38,9 @@ class _AccountScreenState extends State<AccountScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(''),
+        title: Text('Account Details'),
         backgroundColor: Colors.white,
-        iconTheme: IconThemeData(
-            color: Color(0xFF0A84FF)), // Set the back arrow color here
+        iconTheme: IconThemeData(color: Color(0xFF0A84FF)),
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -54,35 +53,26 @@ class _AccountScreenState extends State<AccountScreen> {
                 controller: _nameController,
                 decoration: InputDecoration(
                   labelText: 'Name',
-                  labelStyle: TextStyle(
-                    color: Color(0xFF0A84FF), // Color of the label text
-                  ),
+                  labelStyle: TextStyle(color: Color(0xFF0A84FF)),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Color(
-                          0xFF0A84FF), // Color of the border when not focused
-                    ),
+                    borderSide: BorderSide(color: Color(0xFF0A84FF)),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color:
-                          Color(0xFF0A84FF), // Color of the border when focused
-                    ),
+                    borderSide: BorderSide(color: Color(0xFF0A84FF)),
                   ),
                 ),
-                cursorColor: Color(0xFF0A84FF), // Set the cursor color here
-                style: TextStyle(
-                  color: Color(0xFF0A84FF), // Color of the input text
-                ),
-                textCapitalization:
-                    TextCapitalization.words, // Enable auto capitalization
+                cursorColor: Color(0xFF0A84FF),
+                style: TextStyle(color: Color(0xFF0A84FF)),
+                textCapitalization: TextCapitalization.words,
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () => _updateDisplayName(),
+                onPressed: _updateDisplayName,
                 child: Text('Update Name'),
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF0A84FF), foregroundColor: Colors.white),
+                  backgroundColor: Color(0xFF0A84FF),
+                  foregroundColor: Colors.white,
+                ),
               ),
               SizedBox(height: 20),
               TextField(
@@ -91,26 +81,16 @@ class _AccountScreenState extends State<AccountScreen> {
                 decoration: InputDecoration(
                   labelText: 'Current Password',
                   border: OutlineInputBorder(),
-                  labelStyle: TextStyle(
-                    color: Color(0xFF0A84FF), // Color of the label text
-                  ),
+                  labelStyle: TextStyle(color: Color(0xFF0A84FF)),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Color(
-                          0xFF0A84FF), // Color of the border when not focused
-                    ),
+                    borderSide: BorderSide(color: Color(0xFF0A84FF)),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color:
-                          Color(0xFF0A84FF), // Color of the border when focused
-                    ),
+                    borderSide: BorderSide(color: Color(0xFF0A84FF)),
                   ),
                 ),
-                cursorColor: Color(0xFF0A84FF), // Set the cursor color here
-                style: TextStyle(
-                  color: Color(0xFF0A84FF), // Color of the input text
-                ),
+                cursorColor: Color(0xFF0A84FF),
+                style: TextStyle(color: Color(0xFF0A84FF)),
               ),
               SizedBox(height: 20),
               TextField(
@@ -119,26 +99,16 @@ class _AccountScreenState extends State<AccountScreen> {
                 decoration: InputDecoration(
                   labelText: 'New Password',
                   border: OutlineInputBorder(),
-                  labelStyle: TextStyle(
-                    color: Color(0xFF0A84FF), // Color of the label text
-                  ),
+                  labelStyle: TextStyle(color: Color(0xFF0A84FF)),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Color(
-                          0xFF0A84FF), // Color of the border when not focused
-                    ),
+                    borderSide: BorderSide(color: Color(0xFF0A84FF)),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color:
-                          Color(0xFF0A84FF), // Color of the border when focused
-                    ),
+                    borderSide: BorderSide(color: Color(0xFF0A84FF)),
                   ),
                 ),
-                cursorColor: Color(0xFF0A84FF), // Set the cursor color here
-                style: TextStyle(
-                  color: Color(0xFF0A84FF), // Color of the input text
-                ),
+                cursorColor: Color(0xFF0A84FF),
+                style: TextStyle(color: Color(0xFF0A84FF)),
               ),
               SizedBox(height: 20),
               TextField(
@@ -147,39 +117,34 @@ class _AccountScreenState extends State<AccountScreen> {
                 decoration: InputDecoration(
                   labelText: 'Confirm New Password',
                   border: OutlineInputBorder(),
-                  labelStyle: TextStyle(
-                    color: Color(0xFF0A84FF), // Color of the label text
-                  ),
+                  labelStyle: TextStyle(color: Color(0xFF0A84FF)),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Color(
-                          0xFF0A84FF), // Color of the border when not focused
-                    ),
+                    borderSide: BorderSide(color: Color(0xFF0A84FF)),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color:
-                          Color(0xFF0A84FF), // Color of the border when focused
-                    ),
+                    borderSide: BorderSide(color: Color(0xFF0A84FF)),
                   ),
                 ),
-                cursorColor: Color(0xFF0A84FF), // Set the cursor color here
-                style: TextStyle(
-                  color: Color(0xFF0A84FF), // Color of the input text
-                ),
+                cursorColor: Color(0xFF0A84FF),
+                style: TextStyle(color: Color(0xFF0A84FF)),
               ),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => _changePassword(context),
                 child: Text('Change Password'),
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF0A84FF), foregroundColor: Colors.white),
+                  backgroundColor: Color(0xFF0A84FF),
+                  foregroundColor: Colors.white,
+                ),
               ),
+              SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => _signOut(context),
                 child: Text('Log Out'),
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF0A84FF), foregroundColor: Colors.white),
+                  backgroundColor: Color(0xFF0A84FF),
+                  foregroundColor: Colors.white,
+                ),
               ),
             ],
           ),
@@ -194,7 +159,6 @@ class _AccountScreenState extends State<AccountScreen> {
       await user.updateDisplayName(_nameController.text);
       await user.reload();
       setState(() {});
-      // Return the updated name to the previous screen
       Navigator.pop(context, _nameController.text);
     }
   }
@@ -244,6 +208,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
   Future<void> _signOut(BuildContext context) async {
     await _auth.signOut();
-    Navigator.of(context).pushReplacementNamed('/login');
+    Navigator.of(context)
+        .pushReplacementNamed('/'); // Navigate to login page after sign out
   }
 }
