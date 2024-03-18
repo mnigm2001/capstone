@@ -13,6 +13,11 @@ class MyDrug:
 
     ##Clear text
     def clear_text(self, input_text):
+        #Beginning
+        if(input_text.startswith('\n')):
+            input_text = input_text[1:]
+
+        #End
         if(input_text.find(";") != -1):
             final_text = input_text[:input_text.find(";")]
         elif(input_text.find(".") != -1):
@@ -115,18 +120,57 @@ class MyDrug:
         content = BeautifulSoup(drugs_page.content, "html.parser")
         
         outfile = open(oneDrug_file, "w")
-        li_dict = {"avoid_when":[], "side_effects":{"common":[],"rare":[]}} #Append fields when ready
-        #Step 3: Record 'avoid if'
+        li_dict = {'intake_method':'', 'avoid_when':[], 'side_effects':{'common':[],'rare':[]}} #Append fields when ready
+
+        #Step 3: Record "method of intake"
+        li_dict = self.intakeMethod(content,li_dict)
+        
+        #Step 4: Record 'avoid if'
         li_dict = self.avoidIf(content, li_dict)
 
-        #Step 4: Record "side_effects"
+        #Step 5: Record "side_effects"
         li_dict = self.sideEffects(content, li_dict)
 
-        #Step 5: Dump and close files
+        #Step 6: Dump and close files
         json.dump(li_dict, outfile, indent=2)
         infile.close()
         outfile.close()
 
+    ##Intake method search
+    #@param self: object of class MyDrug
+    #@param content: html page to scrape
+    #@param li_dict: variable to store scraped info
+    def intakeMethod(self, content, li_dict):
+        #Possible intake methods and keywords to scrape for
+        intake_method_list = ['Swallow the pill whole with a glass of water','Break the pill in half, then swallow with water',
+                              'Crush the pill, then swallow with water','Take the pill with food','Take the pill with milk',
+                              'Dissolve the pill in water or another liquid before consuming',
+                              'Place the pill under your tongue and let it dissolve','Chew the pill',
+                              'Follow any specific instructions provided by your healthcare provider or pharmacist']
+        intake_method_keywords = ['swallow','break','crush','food','milk','dissolve','tongue','chewable','N/A']
+
+        target_string = "How should I take" #header to start search from
+        first_target_header = content.find('h2', string=lambda s: target_string in str(s))
+        if first_target_header : end_target_header = first_target_header.find_next("h2") #"end search" header
+        #print(f'{first_target_header} \n {end_target_header}')
+        
+        if first_target_header and end_target_header:
+            content_between_headers = first_target_header.find_all_next(['p','h2'])
+            #print(content_between_headers)
+            for _, item in enumerate(content_between_headers):
+                #print(f'item : {item.text()}')
+                for keyword in intake_method_keywords:
+                    #print(f'keyword : {keyword} ::: {item.text.lower()}')
+                    if (item == end_target_header):
+                        li_dict['intake_method'] = intake_method_list[intake_method_keywords.index('N/A')]
+                        print(li_dict["intake_method"])
+                        return li_dict
+                    if(keyword in item.text.lower()):
+                        li_dict['intake_method'] = intake_method_list[intake_method_keywords.index(keyword)]
+                        print(f'keyword : {keyword} ::: {item.text.lower()}')
+                        print(li_dict["intake_method"])
+                        return li_dict     
+    
     ##Avoid if search
     #@param self: object of class MyDrug
     #@param content: html page to scrape
@@ -147,7 +191,8 @@ class MyDrug:
                     break
                 
                 #clear unecessary marks and append
-                li_dict["avoid_when"].append(self.clear_text(item.get_text(strip=True)))
+                #print(self.clear_text(item.get_text()))
+                li_dict["avoid_when"].append(self.clear_text(item.get_text()))
 
             #print(li_dict["avoid_when"])
         
@@ -162,7 +207,7 @@ class MyDrug:
         target_string = re.compile(r"side effects", re.IGNORECASE)
         first_target_header = content.find('h2', string=target_string)
         end_target_header = first_target_header.find_next("h2") #"end search" header
-        print(f'{first_target_header} \n {end_target_header}')
+        #print(f'{first_target_header} \n {end_target_header}')
         
         if first_target_header and end_target_header:
             content_between_headers = first_target_header.find_all_next(['li', 'h2', 'h3', 'p'])
