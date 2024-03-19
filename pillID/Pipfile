@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 pillow = "*"
 djangorestframework = "*"
+celery = "*"
+redis = "*"
 
 [dev-packages]
 
