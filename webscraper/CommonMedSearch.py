@@ -2,14 +2,14 @@ from bs4 import BeautifulSoup
 import requests
 import time
 import json
-
-
+from webscraper import MyDrug
 
 
 start = time.time()
 #Global Variables
 data = dict()
-outfile = open("common_data.json", "w")
+outfile = "common_data.json"
+
 front_side = ['L484','AD','M','210','TEVA','APO','W961','A',
               'LUPIN','C','1010','TEVA','E','IG','551','437',
               '93','5','VIBRA','Lilly3240', 'VASO','F+L','NEXIUM',
@@ -40,50 +40,11 @@ back_side  = ['','30','255','','3109','ATV20','','54','500',
 color = ''
 shape = '0'
 
-############## DRUGS.COM ##################
 for i in range(len(front_side)):
-    print(f'i={i}')
-    imprint = f'{front_side[i]}+{back_side[i]}'
-
-    url = f'https://www.drugs.com/imprints.php?imprint={imprint}&color={color}&shape={shape}' 
-    drugs_page = requests.get(url, timeout=5)
-    content = BeautifulSoup(drugs_page.content, "html.parser")
-    #content = BeautifulSoup(drugs_page.text, "html.parser")
-    #print (content)
-
-    #Retrieving the entire results page
-    drug_list_with_ads = content.find("div", attrs={"class":"ddc-pid-list"})
-    #print(drug_list_with_ads)
-
-    #Excluding Ads
-    drug_list_without_ads = drug_list_with_ads.find("div", attrs={"class":"ddc-card"})
-    #print(drug_list_without_ads)
-    #print(len(drug_list_without_ads))
-
-    #For Every Drug: 
-    # 1) Store a picture
-    # 2) Drug Name
-    # 3) Drug Strength
-    # 4) Imprint
-    # 5) color
-    # 6) Shape
-
-    drug_table_titles = ["Image", "Name", "Strength", "Imprint", "Color", "Shape"] 
-
-
-    image = drug_list_without_ads.find("img")
-    #print(image['src'])
-    name = drug_list_without_ads.find("h2")
-    #print(name.text)
-    strength, imprint, color, shape = drug_list_without_ads.find_all("dd") #4 dd total inside <dl> tag
-    #print(strength.text, imprint.text, color.text, shape.text)
-    drug_info = [image['src'], name.text, strength.text, imprint.text, color.text, shape.text]
-    data[name.text] = dict(zip(drug_table_titles, drug_info))
-        
-    
-
-#print("data = \n", data)
-json.dump(data, outfile, indent=2)    
-outfile.close()        
+    print(f'i={i}, front: {type(front_side[i])},{front_side[i]}, back:{type(back_side[i])},{back_side[i]}')
+    drug = MyDrug(front_side[i],back_side[i], color, shape)
+    #Calling the quick search function based on passed-in info (with mode 0 to return first result only)
+    drug.quickSearch(outfile,data,0) 
+         
 end = time.time()
 print(f'\n\nElapsed time = {end - start} seconds')
