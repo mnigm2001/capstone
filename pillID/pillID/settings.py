@@ -50,6 +50,17 @@ REST_FRAMEWORK = {
     ],
 }
 
+CELERY_BROKER_URL = 'redis://localhost:6380/0'  # Redis config
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'check-and-send-reminders-every-minute': {
+        'task': 'pill_vault.tasks.check_and_send_reminders',
+        'schedule': crontab(minute='*'),  # runs task every minute
+    },
+}
+
 
 MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",

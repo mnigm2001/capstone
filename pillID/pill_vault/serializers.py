@@ -1,16 +1,11 @@
 from rest_framework import serializers
-from .models import Pill
 
-# For JSON Import CMD
-# class ItemSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Pill
-#         fields = '__all__'
+from .models import Pill, PillIntake, PillReminder
 
 # For Admin OPS
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
-from rest_framework import serializers
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,6 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
+        print("HERE")
         validated_data['password'] = make_password(validated_data.get('password'))
         return super(UserSerializer, self).create(validated_data)
 
@@ -38,7 +34,6 @@ class PillSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-from .models import PillIntake, PillReminder
 class PillIntakeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PillIntake

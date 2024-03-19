@@ -2,43 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.contrib.auth.models import User
 
-# class CustomUserManager(BaseUserManager):
-#     # Your custom user manager logic here...
-#     pass
-
-# class User(AbstractBaseUser, PermissionsMixin):
-
-#     # username = models.CharField(max_length=255, unique=True)
-#     # email = models.EmailField(unique=True)
-#     ## Remove this later
-#     username = models.CharField(max_length=255, default="-")
-#     email = models.EmailField(default="-")
-
-#     # You need to add related_name to groups and user_permissions like so:
-#     groups = models.ManyToManyField(
-#         'auth.Group',
-#         verbose_name='groups',
-#         blank=True,
-#         help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
-#         related_name="custom_user_set",
-#         related_query_name="user",
-#     )
-#     user_permissions = models.ManyToManyField(
-#         'auth.Permission',
-#         verbose_name='user permissions',
-#         blank=True,
-#         help_text='Specific permissions for this user.',
-#         related_name="custom_user_set",
-#         related_query_name="user",
-#     )
-
-#     USERNAME_FIELD = 'username'
-#     REQUIRED_FIELDS = ['email']
-
-#     objects = CustomUserManager()
-
-#     # Rest of your model...
-
+from django.utils.translation import gettext_lazy as _
 
 class Pill(models.Model):
     
@@ -182,33 +146,18 @@ class PillHistory(models.Model):
     date_taken = models.DateTimeField()
     dose = models.CharField(max_length=255)
     notes = models.TextField(blank=True)
-
-# class PillIntake(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     pill = models.ForeignKey(Pill, on_delete=models.CASCADE)
-#     intake_time = models.TimeField()
-#     days_of_week = models.CharField(max_length=14)  # '1234567' for daily
-#     quantity = models.IntegerField(default=1)
-#     active = models.BooleanField(default=True)
-
-# class Reminder(models.Model):
-#     pill_intake = models.ForeignKey(PillIntake, on_delete=models.CASCADE)
-#     reminder_time = models.TimeField()
-#     repeat = models.BooleanField(default=True)
-
-from django.db import models
-from django.contrib.auth.models import User
-from django.utils.translation import gettext_lazy as _
+#class PillScanHistory(models.Model):
 
 class PillIntake(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pill_intakes')
     pill = models.ForeignKey('Pill', on_delete=models.CASCADE, related_name='intakes')
-    frequency = models.CharField(max_length=255, help_text=_("Frequency of intake, e.g., 'daily', 'twice a day', etc."))
-    intake_time = models.TimeField()
-    quantity = models.IntegerField(default=1, help_text=_("Quantity of pills taken at each intake."))
+    frequency_hours = models.IntegerField(null=True, help_text=_("Frequency of intake in hours. E.g., 24 for daily."))
+    # intake_time = models.TimeField()
+    quantity = models.IntegerField(null=True, default=1, help_text=_("Quantity of pills taken at each intake."))
 
     def __str__(self):
-        return f"{self.pill.name} - {self.frequency}"
+        frequency_in_days = self.frequency_hours / 24
+        return f"{self.pill.name} - Every {frequency_in_days} day(s)"
 
 class PillReminder(models.Model):
     pill_intake = models.ForeignKey(PillIntake, on_delete=models.CASCADE, related_name='reminders')
@@ -217,12 +166,3 @@ class PillReminder(models.Model):
 
     def __str__(self):
         return f"Reminder for {self.pill_intake.pill.name} at {self.reminder_time}"
-
-
-# class Request
-# image
-# user
-# status
-    
-# class Images(models.Model):
-#  Contains all the images for a specific pill taken thus far
