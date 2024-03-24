@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:capstone_application/globals.dart';
 import 'home_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class CreateAccountScreen extends StatefulWidget {
   @override
@@ -29,6 +31,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       if (userCredential.user != null) {
         String firstName = _firstNameController.text.split(' ')[0];
         await userCredential.user!.updateDisplayName(firstName);
+
+        // Call the makePostRequest() function here
+        await makePostRequest(); // Make sure you await this if it's async
 
         // Push the HomePage and remove all previous routes
         Navigator.of(context).pushAndRemoveUntil(
@@ -58,6 +63,44 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       }
     } catch (e) {
       print(e); // Handle any other exceptions
+    }
+  }
+
+  Future<void> makePostRequest() async {
+    // The URL of the API you want to send the POST request to
+    final url = Uri.parse('http://10.0.2.2:8000/pill_vault/api/admin/users/');
+
+    // The data you want to send
+    final data = {
+      "first_name": "new",
+      "lastname": "user",
+      "username": "newuser4",
+      "email": "newuser4@example.com",
+      "password": "securepassword1234"
+    };
+    // Encode the data to JSON
+    final body = json.encode(data);
+
+    try {
+      // Send the POST request
+      final response = await http.post(
+        url,
+        // Set the headers to indicate that you're sending JSON data
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      // Check the status code for the result
+      if (response.statusCode == 200) {
+        // Success
+        print('Response data: ${response.body}');
+      } else {
+        // Error
+        print('Request failed with status: ${response.statusCode}.');
+      }
+    } catch (e) {
+      // Handle any errors that occur during the request
+      print('Error sending request: $e');
     }
   }
 
