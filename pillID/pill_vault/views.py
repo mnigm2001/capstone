@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from .models import User, Pill, PillIntake, PillReminder
 from .serializers import UserSerializer, PillSerializer, PillIntakeSerializer, PillReminderSerializer
 from .permissions import IsOwnerOrAdmin
+from .webscraper import MyDrug  # Import your Web_Scrapper class
 
 ## For Token Gen
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -139,6 +140,32 @@ def set_pill_reminder(request):
     )
 
     return Response({'message': 'Reminder set successfully.'}, status=status.HTTP_200_OK)
+
+
+
+
+# -------------- For Web Scraping -------------- #
+@api_view(['POST'])
+def web_scrape(request):
+    # Request will have front_side_imprint, back_side_imprint, color, shape
+    # Get the data from the request, if not found, return an error
+    front_side = request.data.get('front_side')
+    back_side = request.data.get('back_side')
+    color = request.data.get('color')
+    shape = request.data.get('shape')
+    print(request.data)
+
+    # The back_side, color, and shape can be empty strings
+    if not front_side or not color or not shape:
+        return Response({'error': 'Missing required parameters.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Instantiate your scraper
+    search_drug = MyDrug(front_side, back_side, color, shape)
+    pill_data = search_drug.quickSearch2(mode=1)
+    print(pill_data)
+
+
+    return Response(pill_data)
 
 
 # -------------- For Terminal CMD that adds json data to DB -------------- #

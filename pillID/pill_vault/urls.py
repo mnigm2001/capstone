@@ -15,5 +15,7 @@ urlpatterns = [
     path('api-token-auth/', views.CustomObtainAuthToken.as_view()),
     # Include the router URL patterns
     path('api/', include(router.urls)),
-     path('api/register-pill/', views.register_pill, name='register-pill'),
+    path('api/register-pill/', views.register_pill, name='register-pill'),
+    path('api/scrape/', views.web_scrape, name='web-scrape'),
+
 ]

@@ -11,6 +11,117 @@ class MyDrug:
         self.color = color
         self.shape = shape
 
+    number_to_color = {
+    '12': 'White',
+    '14': 'Beige',
+    '73': 'Black',
+    '1': 'Blue',
+    '2': 'Brown',
+    '3': 'Clear',
+    '4': 'Gold',
+    '5': 'Gray',
+    '6': 'Green',
+    '44': 'Maroon',
+    '7': 'Orange',
+    '74': 'Peach',
+    '8': 'Pink',
+    '9': 'Purple',
+    '10': 'Red',
+    '11': 'Tan',
+    '13': 'Yellow',
+    '69': 'Beige & Red',
+    '55': 'Black & Green',
+    '70': 'Black & Teal',
+    '48': 'Black & Yellow',
+    '52': 'Blue & Brown',
+    '45': 'Blue & Gray',
+    '75': 'Blue & Green',
+    '71': 'Blue & Orange',
+    '53': 'Blue & Peach',
+    '34': 'Blue & Pink',
+    '19': 'Blue & White',
+    '26': 'Blue & White Specks',
+    '21': 'Blue & Yellow',
+    '47': 'Brown & Clear',
+    '54': 'Brown & Orange',
+    '28': 'Brown & Peach',
+    '16': 'Brown & Red',
+    '57': 'Brown & White',
+    '27': 'Brown & Yellow',
+    '49': 'Clear & Green',
+    '46': 'Dark & Light Green',
+    '51': 'Gold & White',
+    '61': 'Gray & Peach',
+    '39': 'Gray & Pink',
+    '58': 'Gray & Red',
+    '67': 'Gray & White',
+    '68': 'Gray & Yellow',
+    '65': 'Green & Orange',
+    '63': 'Green & Peach',
+    '56': 'Green & Pink',
+    '43': 'Green & Purple',
+    '62': 'Green & Turquoise',
+    '30': 'Green & White',
+    '22': 'Green & Yellow',
+    '42': 'Lavender & White',
+    '40': 'Maroon & Pink',
+    '50': 'Orange & Turquoise',
+    '64': 'Orange & White',
+    '23': 'Orange & Yellow',
+    '60': 'Peach & Purple',
+    '66': 'Peach & Red',
+    '18': 'Peach & White',
+    '15': 'Pink & Purple',
+    '37': 'Pink & Red Specks',
+    '29': 'Pink & Turquoise',
+    '25': 'Pink & White',
+    '72': 'Pink & Yellow',
+    '17': 'Red & Turquoise',
+    '35': 'Red & White',
+    '20': 'Red & Yellow',
+    '33': 'Tan & White',
+    '59': 'Turquoise & White',
+    '24': 'Turquoise & Yellow',
+    '32': 'White & Blue Specks',
+    '41': 'White & Red Specks',
+    '38': 'White & Yellow',
+    '31': 'Yellow & Gray',
+    '36': 'Yellow & White',
+    }
+
+    number_to_shape = {
+        '1': 'Barrel',
+        '5': 'Capsule/Oblong',
+        '6': 'Character-shape',
+        '9': 'Egg-shape',
+        '10': 'Eight-sided',
+        '11': 'Oval',
+        '12': 'Figure eight-shape',
+        '13': 'Five-sided',
+        '14': 'Four-sided',
+        '15': 'Gear-shape',
+        '16': 'Heart-shape',
+        '18': 'Kidney-shape',
+        '23': 'Rectangle',
+        '24': 'Round',
+        '25': 'Seven-sided',
+        '27': 'Six-sided',
+        '32': 'Three-sided',
+        '33': 'U-shape',
+    }
+
+    def get_color_number(self, color):
+        for key, value in self.number_to_color.items():
+            if value == color:
+                return key
+        return None
+    
+    def get_shape_number(self, shape):
+        for key, value in self.number_to_shape.items():
+            if value == shape:
+                return key
+        return None
+
     ##Clear text
     def clear_text(self, input_text):
         #Beginning
@@ -237,8 +348,11 @@ class MyDrug:
     def quickSearch2(self, mode=1):
         front_side = self.front_side
         back_side  = self.back_side
-        color = self.color
-        shape = self.shape
+        color = self.get_color_number(self.color)
+        shape = self.get_shape_number(self.shape)
+
+        if not color or not shape:
+            return None
 
         data = dict()
 
@@ -275,8 +389,8 @@ class MyDrug:
             strength, imprint, color, shape = drug.find_all("dd") #Extracting individual data
             drug_info = [image['src'], link, strength.text, imprint.text, color.text, shape.text]
             data[name] = dict(zip(drug_table_titles, drug_info))
-            # print(data)
         
         return data
+
 
     
