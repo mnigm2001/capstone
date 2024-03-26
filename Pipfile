@@ -4,6 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+django-environ = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

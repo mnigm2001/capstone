@@ -146,7 +146,24 @@ class PillHistory(models.Model):
     date_taken = models.DateTimeField()
     dose = models.CharField(max_length=255)
     notes = models.TextField(blank=True)
-#class PillScanHistory(models.Model):
+
+class PillScanHistory(models.Model):
+    front_side = models.CharField(max_length=255)
+    back_side = models.CharField(max_length=255)
+    color = models.CharField(max_length=255)
+    shape = models.CharField(max_length=255)
+    searched_at = models.DateTimeField(auto_now_add=True)
+    results = models.ManyToManyField(Pill, related_name='search_history')
+
+    def __str__(self):
+        return f"{self.front_side} {self.back_side} {self.color} {self.shape} search on {self.searched_at}"
+
+class UserScanHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    pill_scan = models.ForeignKey(PillScanHistory, on_delete=models.CASCADE, related_name='user_scans')
+
+    def __str__(self):
+        return f"{self.user.username} scanned {self.pill_scan.front_side}"
 
 class PillIntake(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pill_intakes')
