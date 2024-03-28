@@ -25,13 +25,42 @@ class Comment {
 }
 
 class _DiscussionPageState extends State<DiscussionPage> {
-  List<Comment> comments = [];
+  // Here's the list with mock comments
+  List<Comment> comments = [
+    Comment(
+        id: '1',
+        userName: 'User123',
+        text: 'I found this pill very effective for my condition.',
+        createdAt: DateTime.now()),
+    Comment(
+        id: '2',
+        userName: 'HealthEnthusiast',
+        text: 'Does anyone experience side effects from this?',
+        createdAt: DateTime.now()),
+    Comment(
+        id: '3',
+        userName: 'MedExpert',
+        text: 'Remember to consult a doctor before taking any medication.',
+        createdAt: DateTime.now()),
+    Comment(
+        id: '4',
+        userName: 'CuriousGeorge',
+        text: 'Can I take this pill on an empty stomach?',
+        createdAt: DateTime.now()),
+    Comment(
+        id: '5',
+        userName: 'PharmaJoe',
+        text: 'This pill is cheaper if you buy it with insurance.',
+        createdAt: DateTime.now()),
+  ];
+
   final TextEditingController _commentController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    fetchComments();
+    // Normally fetchComments would get data from a backend, but we'll comment it out for now.
+    // fetchComments();
   }
 
   fetchComments() async {
