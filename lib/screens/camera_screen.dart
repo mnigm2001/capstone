@@ -1,139 +1,101 @@
 import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'dart:async';
+import 'package:flutter/services.dart';
 
 class CameraScreen extends StatefulWidget {
-  final CameraDescription camera;
-
-  const CameraScreen({
-    Key? key,
-    required this.camera,
-  }) : super(key: key);
+  const CameraScreen({Key? key}) : super(key: key);
 
   @override
   _CameraScreenState createState() => _CameraScreenState();
 }
 
 class _CameraScreenState extends State<CameraScreen> {
-  late CameraController _controller;
-  late Future<void> _initializeControllerFuture;
-
-  Future<void> _pickImageFromGallery() async {
-    try {
-      final pickedFile =
-          await ImagePicker().pickImage(source: ImageSource.gallery);
-
-      if (pickedFile != null) {
-        await Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) =>
-                DisplayPictureScreen(imagePath: pickedFile.path),
-          ),
-        );
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
+  static const platform = MethodChannel('com.meddetect.capstone/camera');
 
   @override
   void initState() {
     super.initState();
-    _controller = CameraController(
-      widget.camera,
-      ResolutionPreset.medium,
-    );
-    _initializeControllerFuture = _controller.initialize();
+    _openNativeCamera();  // Open the camera preview immediately
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  Future<void> _openNativeCamera() async {
+    try {
+      await platform.invokeMethod('openNativeCamera');
+    } catch (e) {
+      print('Failed to open native camera: $e');
+    }
+  }
+
+  Future<void> _captureImage() async {
+    try {
+      final result = await platform.invokeMethod('captureImage');
+      print('Image captured: $result');
+    } catch (e) {
+      print('Failed to capture image: $e');
+    }
+  }
+
+  Future<void> _pickImageFromGallery() async {
+    try {
+      final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        print('Picked image path: ${pickedFile.path}');
+      }
+    } catch (e) {
+      print('Failed to pick image from gallery: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(''),
-        backgroundColor: Colors.white, // Assuming you have a white AppBar
-        iconTheme: IconThemeData(
-          color: Color(0xFF0A84FF), // Set the back arrow color to blue
+        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Color(0xFF0A84FF)),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () async {
+            await platform.invokeMethod('stopNativeCamera');
+            Navigator.of(context).pop();
+          },
         ),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: FutureBuilder<void>(
-              future: _initializeControllerFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  return CameraPreview(_controller);
-                } else {
-                  return Center(child: CircularProgressIndicator());
-                }
-              },
+          Positioned.fill(
+            child: Container(
+              color: Colors.white, // Placeholder for native camera preview
             ),
           ),
-          Padding(
-            padding: EdgeInsets.all(8.0), // Adjust the padding as needed
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                FloatingActionButton(
-                  heroTag: "cameraButton",
-                  onPressed: () async {
-                    try {
-                      await _initializeControllerFuture;
-                      final image = await _controller.takePicture();
-                      await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              DisplayPictureScreen(imagePath: image.path),
-                        ),
-                      );
-                    } catch (e) {
-                      print(e);
-                    }
-                  },
-                  child: Icon(Icons.camera),
-                  backgroundColor: Color(0xFF0A84FF), // Set the color here
-                ),
-                FloatingActionButton(
-                  heroTag: "galleryButton",
-                  onPressed: _pickImageFromGallery,
-                  child: Icon(Icons.photo_library),
-                  backgroundColor: Color(0xFF0A84FF), // Set the color here
-                ),
-              ],
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 30.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  FloatingActionButton(
+                    heroTag: "captureButton",
+                    onPressed: _captureImage,
+                    child: Icon(Icons.camera),
+                    backgroundColor: Color(0xFF0A84FF),
+                  ),
+                  FloatingActionButton(
+                    heroTag: "galleryButton",
+                    onPressed: _pickImageFromGallery,
+                    child: Icon(Icons.photo_library),
+                    backgroundColor: Color(0xFF0A84FF),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class DisplayPictureScreen extends StatelessWidget {
-  final String imagePath;
-
-  const DisplayPictureScreen({Key? key, required this.imagePath})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(''),
-        backgroundColor: Colors.white, // Assuming you have a white AppBar
-        iconTheme: IconThemeData(
-          color: Color(0xFF0A84FF), // Set the back arrow color to blue
-        ),
-      ),
-      body: Image.file(File(imagePath)),
     );
   }
 }

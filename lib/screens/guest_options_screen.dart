@@ -230,12 +230,11 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
               children: <Widget>[
                 ElevatedButton(
                   onPressed: () async {
-                    final cameras = await availableCameras();
-                    final firstCamera = cameras.first;
+                    // Since you're using native camera functionality, you no longer need to pass the camera object
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CameraScreen(camera: firstCamera),
+                        builder: (context) => CameraScreen(),
                       ),
                     );
                   },
