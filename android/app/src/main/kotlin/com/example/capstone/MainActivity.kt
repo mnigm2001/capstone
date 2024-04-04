@@ -1,49 +1,47 @@
 package com.meddetect.capstone
 
-import android.app.Activity
-import android.content.Context
-import android.hardware.camera2.CameraAccessException
-import android.hardware.camera2.CameraDevice
-import android.hardware.camera2.CameraManager
-import android.util.Log
+import android.content.Intent
+import android.os.Bundle
+import android.provider.MediaStore
+import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
 
-class CameraService(private val activity: Activity) {
-    private var cameraDevice: CameraDevice? = null
+class MainActivity: FlutterActivity() {
+    private val CHANNEL = "com.meddetect.capstone/camera"
+    private val REQUEST_IMAGE_CAPTURE = 1
 
-    fun openCamera() {
-        val cameraManager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "openNativeCamera" -> {
+                        openCamera()
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+    }
+
+    private fun openCamera() {
+        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         try {
-            val cameraId = cameraManager.cameraIdList[0] // just an example to get the first camera
-            cameraManager.openCamera(cameraId, object : CameraDevice.StateCallback() {
-                override fun onOpened(camera: CameraDevice) {
-                    Log.d("CameraService", "Camera opened")
-                    cameraDevice = camera
-                    // Here you can start the camera preview
-                }
-
-                override fun onDisconnected(camera: CameraDevice) {
-                    Log.d("CameraService", "Camera disconnected")
-                    camera.close()
-                    cameraDevice = null
-                }
-
-                override fun onError(camera: CameraDevice, error: Int) {
-                    Log.d("CameraService", "Error opening camera: $error")
-                    camera.close()
-                    cameraDevice = null
-                }
-            }, null) // You might want to handle background threading here
-        } catch (e: CameraAccessException) {
-            Log.e("CameraService", "Camera access exception", e)
-        } catch (e: SecurityException) {
-            Log.e("CameraService", "Security exception: ${e.message}")
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+        } catch (e: Exception) {
+            Log.e("MainActivity", "openCamera error: ${e.localizedMessage}")
         }
     }
 
-    // Add a method to close the camera device
-    fun closeCamera() {
-        cameraDevice?.close()
-        cameraDevice = null
+    // Optional: Handle the camera result if needed
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
+            val imageBitmap = data?.extras?.get("data") as? Bitmap
+            // Handle the captured image
+        }
     }
 }
-
