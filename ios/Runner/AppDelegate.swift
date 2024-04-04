@@ -3,8 +3,8 @@ import Flutter
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-    var window: UIWindow?
     var imagePicker: UIImagePickerController?
+    var flutterResult: FlutterResult?
 
     override func application(
         _ application: UIApplication,
@@ -16,39 +16,41 @@ import Flutter
         let cameraChannel = FlutterMethodChannel(name: "com.meddetect.capstone/camera", binaryMessenger: controller.binaryMessenger)
 
         cameraChannel.setMethodCallHandler { [weak self] (call, result) in
-            if call.method == "openNativeCamera" {
-                self?.openCamera()
-                result(nil)
-            } else if call.method == "stopNativeCamera" {
-                self?.imagePicker?.dismiss(animated: true, completion: nil)
-                result(nil)
+            self?.flutterResult = result
+            switch call.method {
+            case "openNativeCamera":
+                self?.openCamera(rootViewController: controller)
+            default:
+                result(FlutterMethodNotImplemented)
             }
         }
 
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
 
-    private func openCamera() {
+    private func openCamera(rootViewController: UIViewController) {
         if UIImagePickerController.isSourceTypeAvailable(.camera) {
             imagePicker = UIImagePickerController()
             imagePicker?.delegate = self
             imagePicker?.sourceType = .camera
 
-            if let picker = imagePicker {
-                window?.rootViewController?.present(picker, animated: true, completion: nil)
-            }
+            rootViewController.present(imagePicker!, animated: true, completion: nil)
         } else {
             print("Camera not available")
+            flutterResult?("Camera not available")
         }
     }
 
-    // UIImagePickerControllerDelegate methods
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         // Handle the image captured here if needed
-        picker.dismiss(animated: true, completion: nil)
+        picker.dismiss(animated: true) {
+            self.flutterResult?(nil) // Assuming you handle the result image separately
+        }
     }
 
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        picker.dismiss(animated: true, completion: nil)
+        picker.dismiss(animated: true) {
+            self.flutterResult?(nil)
+        }
     }
 }
