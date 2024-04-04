@@ -1,45 +1,49 @@
 package com.meddetect.capstone
 
-import android.os.Bundle
-import io.flutter.embedding.android.FlutterActivity
-import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.plugin.common.MethodChannel
+import android.app.Activity
 import android.content.Context
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
-
-class MainActivity: FlutterActivity() {
-    private lateinit var cameraService: CameraService
-    private val CHANNEL = "com.example.camera/channel"
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        cameraService = CameraService(this)
-    }
-
-    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        super.configureFlutterEngine(flutterEngine)
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler {
-            call, result ->
-            when (call.method) {
-                "openNativeCamera" -> {
-                    cameraService.openCamera()
-                    result.success(null)
-                }
-                else -> result.notImplemented()
-            }
-        }
-    }
-}
+import android.util.Log
 
 class CameraService(private val activity: Activity) {
+    private var cameraDevice: CameraDevice? = null
+
     fun openCamera() {
         val cameraManager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
             val cameraId = cameraManager.cameraIdList[0] // just an example to get the first camera
-            // You can now use the cameraManager to open the camera, etc.
-        } catch (e: Exception) {
-            e.printStackTrace()
+            cameraManager.openCamera(cameraId, object : CameraDevice.StateCallback() {
+                override fun onOpened(camera: CameraDevice) {
+                    Log.d("CameraService", "Camera opened")
+                    cameraDevice = camera
+                    // Here you can start the camera preview
+                }
+
+                override fun onDisconnected(camera: CameraDevice) {
+                    Log.d("CameraService", "Camera disconnected")
+                    camera.close()
+                    cameraDevice = null
+                }
+
+                override fun onError(camera: CameraDevice, error: Int) {
+                    Log.d("CameraService", "Error opening camera: $error")
+                    camera.close()
+                    cameraDevice = null
+                }
+            }, null) // You might want to handle background threading here
+        } catch (e: CameraAccessException) {
+            Log.e("CameraService", "Camera access exception", e)
+        } catch (e: SecurityException) {
+            Log.e("CameraService", "Security exception: ${e.message}")
         }
+    }
+
+    // Add a method to close the camera device
+    fun closeCamera() {
+        cameraDevice?.close()
+        cameraDevice = null
     }
 }
 

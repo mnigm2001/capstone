@@ -16,7 +16,7 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   void initState() {
     super.initState();
-    _openNativeCamera();  // Open the camera preview immediately
+    _openNativeCamera();
   }
 
   Future<void> _openNativeCamera() async {
@@ -47,54 +47,55 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
+  Future<bool> _onWillPop() async {
+    await platform.invokeMethod('stopNativeCamera');
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        iconTheme: IconThemeData(color: Color(0xFF0A84FF)),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () async {
-            await platform.invokeMethod('stopNativeCamera');
-            Navigator.of(context).pop();
-          },
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          iconTheme: IconThemeData(color: Color(0xFF0A84FF)),
         ),
-      ),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Container(
-              color: Colors.white, // Placeholder for native camera preview
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              color: Colors.white,
-              padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 30.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  FloatingActionButton(
-                    heroTag: "captureButton",
-                    onPressed: _captureImage,
-                    child: Icon(Icons.camera),
-                    backgroundColor: Color(0xFF0A84FF),
-                  ),
-                  FloatingActionButton(
-                    heroTag: "galleryButton",
-                    onPressed: _pickImageFromGallery,
-                    child: Icon(Icons.photo_library),
-                    backgroundColor: Color(0xFF0A84FF),
-                  ),
-                ],
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: Container(
+                color: Colors.white, // Placeholder for native camera preview
               ),
             ),
-          ),
-        ],
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                color: Colors.white,
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 30.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    FloatingActionButton(
+                      heroTag: "captureButton",
+                      onPressed: _captureImage,
+                      child: Icon(Icons.camera),
+                      backgroundColor: Color(0xFF0A84FF),
+                    ),
+                    FloatingActionButton(
+                      heroTag: "galleryButton",
+                      onPressed: _pickImageFromGallery,
+                      child: Icon(Icons.photo_library),
+                      backgroundColor: Color(0xFF0A84FF),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
