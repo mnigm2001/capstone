@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:894832029175:android:0bea4d64c26cdb4a4f52f2",
         "android_client_info": {
-          "package_name": "com.example.meddetect_application"
+          "package_name": "com.meddetect.capstone"
         }
       },
       "oauth_client": [],

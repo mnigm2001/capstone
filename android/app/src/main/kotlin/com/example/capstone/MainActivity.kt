@@ -1,11 +1,16 @@
 package com.meddetect.capstone
 
+import android.Manifest
+import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "com.meddetect.capstone/camera"
@@ -35,13 +40,12 @@ class MainActivity: FlutterActivity() {
         }
     }
 
-    // Optional: Handle the camera result if needed
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
             val imageBitmap = data?.extras?.get("data") as? Bitmap
-            // Handle the captured image
+            // Handle the captured image here if necessary
         }
     }
 }

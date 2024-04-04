@@ -1,4 +1,4 @@
-# meddetect_application
+# capstone
 
 A new Flutter project.
 

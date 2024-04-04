@@ -1,6 +1,6 @@
 {
-    "name": "meddetect_application",
-    "short_name": "meddetect_application",
+    "name": "capstone",
+    "short_name": "capstone",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
