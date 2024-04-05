@@ -19,15 +19,16 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   Future<void> _openNativeCamera() async {
-  try {
-    final result = await platform.invokeMethod('openNativeCamera');
-    if (result == null) { // Assuming the method will return null when the camera is closed
-      Navigator.of(context).pop();
+    try {
+      final result = await platform.invokeMethod('openNativeCamera');
+      if (result == null) {
+        // Assuming the method will return null when the camera is closed
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      print('Failed to open native camera: $e');
     }
-  } catch (e) {
-    print('Failed to open native camera: $e');
   }
-}
 
   @override
   Widget build(BuildContext context) {
