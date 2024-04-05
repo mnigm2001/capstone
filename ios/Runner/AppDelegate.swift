@@ -33,7 +33,6 @@ import Flutter
             imagePicker = UIImagePickerController()
             imagePicker?.delegate = self
             imagePicker?.sourceType = .camera
-
             rootViewController.present(imagePicker!, animated: true, completion: nil)
         } else {
             print("Camera not available")
@@ -42,15 +41,33 @@ import Flutter
     }
 
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        // Handle the image captured here if needed
+        if let image = info[.originalImage] as? UIImage {
+            saveImageTemporarily(image: image)
+        }
         picker.dismiss(animated: true) {
-            self.flutterResult?(nil) // Assuming you handle the result image separately
+            self.flutterResult?(nil)
         }
     }
 
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         picker.dismiss(animated: true) {
             self.flutterResult?(nil)
+        }
+    }
+
+    private func saveImageTemporarily(image: UIImage) {
+        let fileManager = FileManager.default
+        if let data = image.jpegData(compressionQuality: 1.0) {
+            do {
+                let tempDirectory = fileManager.temporaryDirectory
+                let fileName = UUID().uuidString + ".jpg"
+                let fileURL = tempDirectory.appendingPathComponent(fileName)
+                try data.write(to: fileURL)
+                print("Image saved at \(fileURL.path)")
+                // Store this path if needed to access the image later
+            } catch {
+                print("Error saving image: \(error)")
+            }
         }
     }
 }
