@@ -8,6 +8,8 @@ pillow = "*"
 djangorestframework = "*"
 celery = "*"
 redis = "*"
+django-debug-toolbar = "*"
+mysqlclient = "*"
 
 [dev-packages]
 
