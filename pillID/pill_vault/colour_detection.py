@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import base64
 from openai import OpenAI
+from django.conf import settings
+import os
 
 class colour_detection:
     def __init__(self, image_input):
@@ -40,9 +42,10 @@ class colour_detection:
         return img
 
     def setup_csv(self):
-        # Assuming 'colors.csv' is in the current working directory
-        index=["color", "color_name", "hex", "R", "G", "B"]
-        self.csv = pd.read_csv('colors.csv', names=index, header=None)
+        # Reading csv file with pandas and giving names to each column
+        index=["color","color_name","hex","R","G","B"]
+        color_csv_path = os.path.join(settings.PILL_VAULT_DIR, 'resources/colors.csv')
+        self.csv = pd.read_csv(color_csv_path, names=index, header=None)
 
     def avg_all_pixels(self):
         # Calculate the average color of all pixels after increasing brightness

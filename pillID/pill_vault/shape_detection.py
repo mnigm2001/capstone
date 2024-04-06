@@ -1,9 +1,11 @@
 import cv2
 import numpy as np
-from colour_detection import colour_detection
 import base64
 from openai import OpenAI
 import os, datetime
+from PIL import Image
+
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 image_name = '1. APO White Oblong'
 pre_processed_imgs_path = os.path.join('/home/mnigm2001/capstone/backend/imagerecog/pre_processed_imgs', image_name)
@@ -26,12 +28,26 @@ class shape_detection :
         # self.detect_shape_gpt()
         # self.final_shape()
 
+    def convert_to_cv2(self, image_file):
+        # Read the image file in a PIL format
+        pil_image = Image.open(image_file)
+        pil_image = pil_image.convert('RGB')  # Ensure it's in RGB format
+
+        # Convert the PIL image to a cv2 (OpenCV) image
+        cv2_image = np.array(pil_image) 
+        # Convert RGB to BGR (what OpenCV uses)
+        cv2_image = cv2_image[:, :, ::-1].copy() 
+        return cv2_image
+
+
     def setup_image_params(self):
         # Check if the input is a string (path) or already an image (numpy array)
         if isinstance(self.image_input, str):
             self.cv2_img = cv2.imread(self.image_input)
         elif isinstance(self.image_input, np.ndarray):
             self.cv2_img = self.image_input
+        elif isinstance(self.image_input, InMemoryUploadedFile):
+            self.cv2_img = self.convert_to_cv2(self.image_input)
         else:
             raise ValueError("Image input must be a file path or a cv2 image.")
 
