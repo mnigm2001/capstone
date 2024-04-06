@@ -256,6 +256,7 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'pill.dart';
+import 'discussion_screen.dart';
 
 class PillDetailsScreen extends StatefulWidget {
   final Pill pill;
@@ -418,9 +419,23 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        iconTheme: IconThemeData(
-          color: Color(0xFF0A84FF),
-        ),
+        iconTheme: IconThemeData(color: Color(0xFF0A84FF)),
+        actions: <Widget>[
+          IconButton(
+            icon:
+                Icon(Icons.forum, size: 32.5), // Use a discussion-related icon
+            padding: EdgeInsets.only(
+                right: 16.0), // Adjust padding to align with the content below
+            onPressed: () {
+              // Navigate to the discussion page
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DiscussionPage(pill: widget.pill),
+                  ));
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -462,9 +477,17 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 10),
             Text(
-              "• ${widget.pill.purpose}",
+              "Purpose:",
+              style: TextStyle(
+                color: Color(0xFF0A84FF),
+                fontSize: 18,
+                fontWeight: FontWeight.bold, // Make text bold
+              ),
+            ),
+            Text(
+              "${widget.pill.purpose}",
               style: TextStyle(
                 color: Color(0xFF0A84FF),
                 fontSize: 18,
@@ -472,7 +495,15 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
             ),
             SizedBox(height: 10),
             Text(
-              "• ${widget.pill.applicationMethod}",
+              "Application:",
+              style: TextStyle(
+                color: Color(0xFF0A84FF),
+                fontSize: 18,
+                fontWeight: FontWeight.bold, // Make text bold
+              ),
+            ),
+            Text(
+              "${widget.pill.applicationMethod}",
               style: TextStyle(
                 color: Color(0xFF0A84FF),
                 fontSize: 18,
@@ -480,7 +511,15 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
             ),
             SizedBox(height: 10),
             Text(
-              "• ${widget.pill.sideEffects}",
+              "Side Effects:",
+              style: TextStyle(
+                color: Color(0xFF0A84FF),
+                fontSize: 18,
+                fontWeight: FontWeight.bold, // Make text bold
+              ),
+            ),
+            Text(
+              "${widget.pill.sideEffects}",
               style: TextStyle(
                 color: Color(0xFF0A84FF),
                 fontSize: 18,
@@ -495,6 +534,7 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
                 foregroundColor: Colors.white,
               ),
             ),
+            SizedBox(height: 15), // Add some space after the button for padding
           ],
         ),
       ),
