@@ -278,5 +278,3 @@ class MyDrug:
             # print(data)
         
         return data
-
-    
