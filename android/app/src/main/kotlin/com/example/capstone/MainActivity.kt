@@ -1,3 +1,4 @@
+
 package com.meddetect.capstone
 
 import android.Manifest
@@ -18,7 +19,14 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
-import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.MultipartBody
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Response
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.meddetect.capstone/camera"
@@ -87,32 +95,37 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun sendImageToServer(imageUri: Uri) {
-        val inputStream = contentResolver.openInputStream(imageUri)
-        val fileName = "image_${System.currentTimeMillis()}.jpg"
+private fun sendImageToServer(imageUri: Uri) {
+    val inputStream = contentResolver.openInputStream(imageUri)
+    val fileName = "image_${System.currentTimeMillis()}.jpg"
 
-        inputStream?.let { stream ->
-            val buffer = stream.readBytes()
-            val requestBody = RequestBody.create(MediaType.parse("image/jpeg"), buffer)
-            val multipartBody = MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("file", fileName, requestBody)
-                .build()
+    inputStream?.let { stream ->
+        val buffer = stream.readBytes()
+        val mediaType = "image/jpeg".toMediaTypeOrNull()
+        val requestBody = buffer.toRequestBody(mediaType)
+        val multipartBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("file", fileName, requestBody)
+            .build()
 
-            val request = Request.Builder()
-                .url(http://127.0.0.1:8000/pill_vault/api/scan-image/)  // Replace with your actual endpoint URL
-                .post(multipartBody)
-                .build()
+        val request = Request.Builder()
+            .url("http://10.0.0.242:8000/pill_vault/api/scan-image/")  // Replace with your actual endpoint URL
+            .post(multipartBody)
+            .build()
 
-            OkHttpClient().newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    Log.e("MainActivity", "Failed to send image", e)
+        OkHttpClient().newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("MainActivity", "Failed to send image", e)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.body?.let { responseBody ->
+                    val responseString = responseBody.string()
+                    Log.d("MainActivity", "Response received: $responseString")
                 }
-
-                override fun onResponse(call: Call, response: Response) {
-                    Log.d("MainActivity", "Response received: ${response.body()?.string()}")
-                }
-            })
-        }
+            }
+        })
     }
+}
+
 }
