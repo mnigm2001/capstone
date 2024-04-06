@@ -25,7 +25,15 @@ SECRET_KEY = 'django-insecure-dtnq6h)l-4gmfjo8l*^m8-mn=q01pyb2ktqi%lntz^q$n=5udb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.0.2.2', '127.0.0.1']
+ALLOWED_HOSTS = ['10.0.2.2', '127.0.0.1','10.0.0.242']
+
+from dotenv import load_dotenv
+load_dotenv()  # Take environment variables from .env file
+
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PILLID_DIR = os.path.join(BASE_DIR, 'pillID')
+PILL_VAULT_DIR = os.path.join(BASE_DIR, 'pill_vault')
 
 
 # Application definition
@@ -108,9 +116,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'pill_vault',
         'HOST': 'localhost',
-        'USER': 'alasfarm',
-        'PASSWORD': 'Moman14-14-14',
-        'PORT' : '3306',
+        'USER': 'root',
+        'PASSWORD': 'XT45cc=7pC!=',
     }
 }
 

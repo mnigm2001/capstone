@@ -1,0 +1,10 @@
+{
+  "Acetaminophen": {
+    "Image": "https://www.drugs.com/images/pills/nlm/493480042.jpg",
+    "Link": "https://www.drugs.com/acetaminophen.html",
+    "Strength": "500mg",
+    "Imprint": "L484",
+    "Color": "White",
+    "Shape": "Capsule/Oblong"
+  }
+}

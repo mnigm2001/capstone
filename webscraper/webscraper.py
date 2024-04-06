@@ -234,5 +234,47 @@ class MyDrug:
 
         return li_dict
     
+    def quickSearch2(self, mode=1):
+        front_side = self.front_side
+        back_side  = self.back_side
+        color = self.color
+        shape = self.shape
 
-    
+        data = dict()
+
+        ############## DRUGS.COM ##################
+        front_side = front_side.replace(" ", "+")#Removes any spaces inputted by the user 
+        back_side = back_side.replace(" ", "+")
+        imprint = f'{front_side}+{back_side}'
+
+        url = f'https://www.drugs.com/imprints.php?imprint={imprint}&color={color}&shape={shape}' 
+        drugs_page = requests.get(url, timeout=5)
+        content = BeautifulSoup(drugs_page.content, "html.parser")
+        
+        #Retrieving the entire results page
+        drug_list_with_ads = content.find("div", attrs={"class":"ddc-pid-list"})
+
+        #Excluding Ads
+        if(mode):
+            drug_list_without_ads = drug_list_with_ads.find_all("div", attrs={"class":"ddc-card"})
+        else:
+            drug_list_without_ads = drug_list_with_ads.find("div", attrs={"class":"ddc-card"})
+            drug_list_without_ads = [drug_list_without_ads]        
+
+        #For Every Drug: 1) Store a picture 2) Drug Name 3) Drug Strength 4) Imprint 5) color 6) Shape
+        drug_table_titles = ["Image", "Link", "Strength", "Imprint", "Color", "Shape"] 
+        
+        
+        for drug in drug_list_without_ads:
+            image = drug.find("img") #Extracting top image per drug
+            
+            label = drug.find("a") #Extracting drug's name + link
+            name = label.text
+            link = "https://www.drugs.com" + label['href']
+
+            strength, imprint, color, shape = drug.find_all("dd") #Extracting individual data
+            drug_info = [image['src'], link, strength.text, imprint.text, color.text, shape.text]
+            data[name] = dict(zip(drug_table_titles, drug_info))
+            # print(data)
+        
+        return data
