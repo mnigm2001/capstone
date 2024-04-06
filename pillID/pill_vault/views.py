@@ -160,86 +160,6 @@ def set_pill_reminder(request):
 
 
 # -------------- For Web Scraping -------------- #
-# @api_view(['POST'])
-# def web_scrape(request):
-#     # Request will have front_side_imprint, back_side_imprint, color, shape
-#     # Get the data from the request, if not found, return an error
-#     front_side = request.data.get('front_side')
-#     back_side = request.data.get('back_side')
-#     color = request.data.get('color')
-#     shape = request.data.get('shape')
-#     print(request.data)
-
-#     # The back_side, color, and shape can be empty strings
-#     if not front_side or not color or not shape:
-#         return Response({'error': 'Missing required parameters.'}, status=status.HTTP_400_BAD_REQUEST)
-
-#     # Check PillScanHistory for a matching search
-#     matching_histories = PillScanHistory.objects.filter(
-#         front_side=front_side,
-#         back_side=back_side,
-#         color=color,
-#         shape=shape
-#     )
-    
-#     # If there's a match and it has associated results, return those pills
-#     if matching_histories.exists():
-#         print('Matching histories found.')
-#         # Assuming many PillScanHistory entries could match, aggregate their pills
-#         pills = Pill.objects.filter(search_history__in=matching_histories).distinct()
-#         response_serializer = PillSerializer(pills, many=True)
-#         return Response(response_serializer.data)
-
-#     # Check if pill is registered for this user
-#     try:
-#         pill = Pill.objects.get(name=front_side, color=color, shape=shape)  # Adjust query as needed
-#         pill_intake = PillIntake.objects.filter(user=request.user, pill=pill).first()
-
-#         if pill_intake:
-#             print('Pill already registered for user.')
-#             # Pill is already registered for this user, so return its details without scraping
-#             response_serializer = PillSerializer(pill)
-#             return Response(response_serializer.data)
-#     except Pill.DoesNotExist:
-#         pass  # If the pill doesn't exist, proceed with the web scraping below
-
-
-#     # Webscrape
-#     search_drug = MyDrug(front_side, back_side, color, shape)
-#     pill_data = search_drug.quickSearch2(mode=1)
-#     print(pill_data)
-
-#     pills = []  # To store Pill objects for serialization
-#     for pill_name, pill_info in pill_data.items():
-#         pill_info_with_name = {"name": pill_name, **pill_info}
-#         pill_info_with_name = {k.lower(): v for k, v in pill_info_with_name.items()}  # lower-case keys
-#         print(pill_info_with_name)
-#         serializer = ScrapedPillSerializer(data=pill_info_with_name)
-#         if serializer.is_valid():
-#             pill = serializer.save()
-#             pills.append(pill)
-#         else:
-#             # validation errors
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-#     # If the user is authenticated, associate the search with their history
-#     if not isinstance(request.user, AnonymousUser):
-#         search_history = PillScanHistory.objects.create(
-#             user=request.user,
-#             front_side=front_side,
-#             back_side=back_side,
-#             color=color,
-#             shape=shape,
-#         )
-#         # Associate the found/created pills with the user's search history
-#         search_history.results.set(pills)
-
-#     # Serialize and return the pills
-#     response_serializer = PillSerializer(pills, many=True)
-#     return Response(response_serializer.data)
-        
-
-################
 @api_view(['POST'])
 def web_scrape(request):
     front_side = request.data.get('front_side')
@@ -295,9 +215,10 @@ def web_scrape(request):
     return Response(response_serializer.data)
 
 
+# -------------- Image Scan -------------- #
 class ImageUploadView(APIView):
     parser_classes = [FileUploadParser]
-    parser_classes = (MultiPartParser,)
+    parser_classes = (MultiPartParser,) #https://stackoverflow.com/questions/46806335/fileuploadparser-doesnt-get-the-file-name
 
     def post(self, request, *args, **kwargs):
         print(request.data)
@@ -331,7 +252,7 @@ class ImageUploadView(APIView):
         start_time = time.time()
         if(result["Pill Detected"]):
             print("Pill Detected")
-            shape_test = shape_detection(test.cropped_img) # TODO: THIS WONT WORK
+            shape_test = shape_detection(test.cropped_img, cropped=True) # TODO: THIS WONT WORK
         else:
             print("Pill not detected")
             shape_test = shape_detection(file)
