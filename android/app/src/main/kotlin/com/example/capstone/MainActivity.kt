@@ -31,6 +31,7 @@ import okhttp3.Response
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.meddetect.capstone/camera"
     private val REQUEST_IMAGE_CAPTURE = 1
+    private var imageUris: MutableList<Uri> = mutableListOf()
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -62,12 +63,22 @@ class MainActivity : FlutterActivity() {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
             val imageBitmap = data?.extras?.get("data") as? Bitmap
             imageBitmap?.let {
-                saveImageToStorage(it)
+                val imageUri = saveImageToStorage(it)
+                imageUri?.let { uri ->
+                    imageUris.add(uri)
+                    
+                    if (imageUris.size < 2) {
+                        openCamera()  // Take the second picture
+                    } else {
+                        sendImagesToServer(imageUris)
+                        imageUris.clear()  // Clear the list for next session
+                    }
+                }
             }
         }
     }
 
-    private fun saveImageToStorage(bitmap: Bitmap) {
+    private fun saveImageToStorage(bitmap: Bitmap): Uri? {
         val filename = "captured_image_${System.currentTimeMillis()}.jpg"
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
@@ -77,21 +88,14 @@ class MainActivity : FlutterActivity() {
             }
         }
 
-        try {
-            val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-            uri?.let {
-                contentResolver.openOutputStream(it)?.use { fos ->
-                    if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)) {
-                        throw IOException("Failed to save bitmap.")
-                    } else {
-                        Log.d("MainActivity", "Image saved to: $uri")
-                        // Send the image to the server after saving
-                        sendImageToServer(uri)
-                    }
-                } ?: throw IOException("Failed to get output stream.")
-            } ?: throw IOException("Failed to create new MediaStore record.")
-        } catch (e: Exception) {
-            Log.e("MainActivity", "Failed to save image", e)
+        return contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)?.also { uri ->
+            contentResolver.openOutputStream(uri)?.use { fos ->
+                if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)) {
+                    Log.e("MainActivity", "Failed to save bitmap.")
+                } else {
+                    Log.d("MainActivity", "Image saved to: $uri")
+                }
+            }
         }
     }
 
@@ -126,6 +130,24 @@ private fun sendImageToServer(imageUri: Uri) {
             }
         })
     }
+
+    val requestBody = requestBodyBuilder.build()
+    val request = Request.Builder()
+        .url("http://10.0.0.242:8000/pill_vault/api/scan-image/") // Make sure this URL is correct
+        .post(requestBody)
+        .build()
+
+    client.newCall(request).enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            Log.e("MainActivity", "Failed to send image", e)
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            Log.d("MainActivity", "Response received: ${response.body?.string()}")
+        }
+    })
+}
+
 }
 
 }

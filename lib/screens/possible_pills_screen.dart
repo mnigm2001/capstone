@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'pill.dart';
+import 'pill.dart'; // Assuming this class exists and has the necessary fields
 import 'pill_details_screen.dart'; // Make sure to import the Pill Details Page
 
-class PillsPage extends StatefulWidget {
+class ProbablePillsPage extends StatefulWidget {
   @override
-  _PillsPageState createState() => _PillsPageState();
+  _ProbablePillsPageState createState() => _ProbablePillsPageState();
 }
 
-class _PillsPageState extends State<PillsPage> {
+class _ProbablePillsPageState extends State<ProbablePillsPage> {
   final List<Pill> pills = [
     Pill(
       name: "Aspirin",
@@ -75,7 +75,7 @@ class _PillsPageState extends State<PillsPage> {
               ),
             ),
             subtitle: Text(
-              '${pill.dosage} - ${pill.description}',
+              'Imprint: ${pill.imprint} - Shape: ${pill.shape} - Color: ${pill.color}',
               style: TextStyle(
                 color: Color(0xFF0A84FF),
                 fontSize: 17.5,
