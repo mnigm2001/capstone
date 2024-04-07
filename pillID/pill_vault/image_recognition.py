@@ -8,12 +8,14 @@ from .shape_detection import shape_detection
 import numpy as np
 
 import os
-
+import datetime
+from django.conf import settings
 
 class image_recognition:
 
     def __init__(self,image_file):
         self.cv2_img = self.convert_to_cv2(image_file)
+        self.H,self.W,_= self.cv2_img.shape
         self.pill_detected = False
         self.blur = 9
         self.setup_client()
@@ -65,27 +67,12 @@ class image_recognition:
                                     aws_secret_access_key=secret_access_key,
                                     region_name='us-east-2',)
         else:
-            raise ValueError("AWS credentials not found in the CSV file.")
+            raise ValueError("AWS credentials Missing from Environment.")
 
-
-    # def setup_client(self):
-    #     with open('test_accessKeys.csv','r') as input:
-    #         next(input)
-    #         reader = csv.reader(input)
-    #         print(reader, dir(reader))
-    #         for line in reader:
-    #             print(line)
-    #             access_key_id = line[0]
-    #             secret_access_key = line[1]
-
-    #     self.client = boto3.client('rekognition',
-    #                   aws_access_key_id = access_key_id,
-    #                   aws_secret_access_key = secret_access_key,
-    #                   region_name='us-east-2',)
-    
     def Preprocessing(self,blur=9):
         blurred = cv2.GaussianBlur(self.cv2_img, (blur,blur), 0)
         # cv2.imwrite('cv2_img_processed.jpg', blurred)
+        # self.save_image(blurred, prefix='blurred')  # Save the blurred image
         self.image_processed = cv2.imencode(".jpg", blurred)[1].tobytes()
         self.image_bytes = self.image_processed
         
@@ -126,8 +113,6 @@ class image_recognition:
             self.pill_detected = False
 
 
-
-
     def detect_text(self):
         if(self.pill_detected):
             self.detected_text = self.client.detect_text(Image={'Bytes': cv2.imencode('.jpg', self.cropped_img)[1].tobytes()})
@@ -139,6 +124,22 @@ class image_recognition:
                 if(len(label['DetectedText']) > 0):
                     self.imprint = label ['DetectedText']
                     break
+
+    def save_image(self, img, prefix='processed_image'):
+        save_dir = os.path.join(settings.PILL_VAULT_DIR, 'temp/process_images/') 
+        os.makedirs(save_dir, exist_ok=True)
+        
+        # Create a timestamped filename for the image
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{prefix}_{timestamp}.jpg"
+        file_path = os.path.join(save_dir, filename)
+
+        # Save the image using OpenCV
+        cv2.imwrite(file_path, img)
+        print(f"Image saved to {file_path}")
+
+
+
 
 # if __name__ == "__main__":
 #     image = 'Pills/APO500_Oblong.JPG'

@@ -1,3 +1,4 @@
+
 package com.meddetect.capstone
 
 import android.Manifest
@@ -98,17 +99,36 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-private fun sendImagesToServer(imageUris: List<Uri>) {
-    val client = OkHttpClient()
-    val requestBodyBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
+private fun sendImageToServer(imageUri: Uri) {
+    val inputStream = contentResolver.openInputStream(imageUri)
+    val fileName = "image_${System.currentTimeMillis()}.jpg"
 
-    imageUris.forEachIndexed { index, uri ->
-        val fileBody = contentResolver.openInputStream(uri)?.readBytes()?.toRequestBody("image/jpeg".toMediaTypeOrNull())
-        fileBody?.let {
-            // Correctly label images as "image1" and "image2"
-            val imageLabel = "image${index + 1}" // will be image1 for the first image and image2 for the second
-            requestBodyBuilder.addFormDataPart(imageLabel, "${imageLabel}.jpg", it)
-        }
+    inputStream?.let { stream ->
+        val buffer = stream.readBytes()
+        val mediaType = "image/jpeg".toMediaTypeOrNull()
+        val requestBody = buffer.toRequestBody(mediaType)
+        val multipartBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("file", fileName, requestBody)
+            .build()
+
+        val request = Request.Builder()
+            .url("http://10.0.0.242:8000/pill_vault/api/scan-image/")  // Replace with your actual endpoint URL
+            .post(multipartBody)
+            .build()
+
+        OkHttpClient().newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("MainActivity", "Failed to send image", e)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.body?.let { responseBody ->
+                    val responseString = responseBody.string()
+                    Log.d("MainActivity", "Response received: $responseString")
+                }
+            }
+        })
     }
 
     val requestBody = requestBodyBuilder.build()
@@ -126,6 +146,8 @@ private fun sendImagesToServer(imageUris: List<Uri>) {
             Log.d("MainActivity", "Response received: ${response.body?.string()}")
         }
     })
+}
+
 }
 
 }
