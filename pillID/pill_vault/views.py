@@ -11,7 +11,8 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser
 
-import time, json
+import time, json, os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 ## For Token Gen
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -21,11 +22,13 @@ from rest_framework.response import Response
 from .models import User, Pill, PillIntake, PillReminder, PillScanHistory, UserScanHistory
 from .serializers import UserSerializer, PillSerializer, PillIntakeSerializer, PillReminderSerializer, ScrapedPillSerializer
 from .permissions import IsOwnerOrAdmin
-from .webscraper import MyDrug  # Import your Web_Scrapper class
-from .image_recognition import image_recognition
-from .shape_detection import shape_detection
-from .colour_detection import colour_detection
 
+from .webscraper import MyDrug
+from .imgproc_shape_detection import shape_detection
+from .imgproc_colour_detection import colour_detection
+from .imgproc_top import process_image
+
+from django.conf import settings
 
 class CustomObtainAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
@@ -159,41 +162,60 @@ def set_pill_reminder(request):
 
 
 
-
+# ---------------------------------------------- #
 # -------------- For Web Scraping -------------- #
-@api_view(['POST'])
-def web_scrape(request):
-    front_side = request.data.get('front_side')
-    back_side = request.data.get('back_side', '')  # Default to empty string if not provided
-    color = request.data.get('color')
-    shape = request.data.get('shape')
-
-    if not front_side or not color or not shape:
-        return Response({'error': 'Missing required parameters.'}, status=status.HTTP_400_BAD_REQUEST)
-
+# ---------------------------------------------- #
+def perform_web_scrape(front_side, back_side, color, shape, user):    
     # Check PillScanHistory for a matching search
-    matching_history, created = PillScanHistory.objects.get_or_create(
+    matching_histories = PillScanHistory.objects.filter(
         front_side=front_side,
         back_side=back_side,
         color=color,
         shape=shape
-    )
+    ).order_by('-searched_at')  # Order by the most recent first
+
+    created = False
+    # If there's a match, use the most recent one
+    if matching_histories.exists():
+        matching_history = matching_histories.first()
+    else:
+        created = True
+        # If there's no match, create a new one
+        matching_history = PillScanHistory.objects.create(
+            front_side=front_side,
+            back_side=back_side,
+            color=color,
+            shape=shape
+        )
 
     # If there's a match and it has associated results, and it wasn't just created, return those pills
     if not created:
         pills = Pill.objects.filter(search_history=matching_history).distinct()
         if pills.exists():
+            print("Matching History Found")
             response_serializer = PillSerializer(pills, many=True)
-            return Response(response_serializer.data)
+            return response_serializer.data
 
-    # Proceed with web scraping if no matching history with results was found or it was just created
+    # Proceed with web scraping if no matching history with pill results was found or it was just created
+    print("No Matching History Found: Proceeding with Web Scraping...")
     search_drug = MyDrug(front_side, back_side, color, shape)
-    pill_data = search_drug.quickSearch2(mode=1)
+    retry_count = 0
+    while retry_count < 3:
+        pill_data = search_drug.quickSearch2(mode=1)
+        if pill_data is not None:
+            break
+        else:
+            retry_count += 1
+
+    if pill_data is None:
+        print("No data found.")
+        return None
 
     pills = []  # To store Pill objects for serialization
     for pill_name, pill_info in pill_data.items():
         pill_info_with_name = {"name": pill_name, **pill_info}
         pill_info_with_name = {k.lower(): v for k, v in pill_info_with_name.items()}  # lower-case keys
+        # print("pill_info_with_name: ", pill_info_with_name)
         serializer = ScrapedPillSerializer(data=pill_info_with_name)
         if serializer.is_valid():
             pill = serializer.save()
@@ -205,72 +227,210 @@ def web_scrape(request):
     matching_history.results.set(pills)
 
     # If the user is authenticated, link this PillScanHistory to the UserScanHistory
-    if not isinstance(request.user, AnonymousUser):
+    if not isinstance(user, AnonymousUser):
         UserScanHistory.objects.create(
-            user=request.user,
+            user=user,
             pill_scan=matching_history
         )
 
-    # Serialize and return the pills
     response_serializer = PillSerializer(pills, many=True)
-    return Response(response_serializer.data)
+    return response_serializer.data
 
 
+@api_view(['POST'])
+def web_scrape(request):
+    front_side = request.data.get('front_side')
+    back_side = request.data.get('back_side', '')  # Default to empty string if not provided
+    color = request.data.get('color')
+    shape = request.data.get('shape')
+    print("Params Parsed")
+
+    if not front_side or not color or not shape:
+        return Response({'error': 'Missing required parameters.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+    # Perform the web scrape using the refactored function
+    result = perform_web_scrape(front_side, back_side, color, shape, request.user)
+
+    print("Data found")
+    print(result)
+    return Response(result, status=status.HTTP_200_OK)
+
+# ---------------------------------------- #
 # -------------- Image Scan -------------- #
+# ---------------------------------------- #
+
+def perform_shape_color_detection(final_img):
+    print("\nPerforming Shape and Colour Detection...")
+    
+    # Define functions to be executed in parallel
+    def detect_custom_shape(shape_obj):
+        shape_obj.find_shape()
+        return shape_obj.shape
+
+    def detect_gpt_shape(shape_obj):
+        shape_obj.detect_shape_gpt()
+        return shape_obj.gbt_shape
+
+    def detect_custom_colour(color_obj):
+        color_obj.avg_all_pixels()
+        return color_obj.colour
+
+    def detect_gpt_colour(color_obj):
+        color_obj.detect_colour_gpt()
+        return color_obj.gbt_colour
+
+    # Initialize objects
+    shape_obj = shape_detection(final_img)
+    color_obj = colour_detection(final_img)
+
+    # Use ThreadPoolExecutor to run tasks concurrently
+    with ThreadPoolExecutor() as executor:
+        # Schedule the custom and GPT-based methods for shape and color detection
+        future_custom_shape = executor.submit(detect_custom_shape, shape_obj)
+        future_gpt_shape = executor.submit(detect_gpt_shape, shape_obj)
+        future_custom_colour = executor.submit(detect_custom_colour, color_obj)
+        future_gpt_colour = executor.submit(detect_gpt_colour, color_obj)
+
+        # Wait for all futures to complete
+        custom_shape = future_custom_shape.result()
+        gpt_shape = future_gpt_shape.result()
+        custom_colour = future_custom_colour.result()
+        gpt_colour = future_gpt_colour.result()
+
+    print("Custom Shape = ", custom_shape, "\tGPT Shape = ", gpt_shape)
+    print("Custom Colour = ", custom_colour, "\tGPT Colour = ", gpt_colour)
+
+    return custom_colour, custom_shape, gpt_colour, gpt_shape
+
+def image_scan(file):
+    detected_text, final_img = process_image(image_file=file,
+                                image_name=file.name,
+                                pre_processed_imgs_path=os.path.join(settings.PILL_VAULT_DIR, 'pre_processed_imgs'), 
+                                save_img_prefix=0)
+    
+    if detected_text is None:
+        return detected_text, final_img
+    return detected_text, final_img
+
+
 class ImageUploadView(APIView):
     parser_classes = [FileUploadParser]
     parser_classes = (MultiPartParser,) #https://stackoverflow.com/questions/46806335/fileuploadparser-doesnt-get-the-file-name
 
     def post(self, request, *args, **kwargs):
-        print(request.data)
-        if 'file' not in request.data:
-            return Response("No image file provided", status=status.HTTP_400_BAD_REQUEST)
+
+        response_data = {}
+        response_data["Pill Detected"] = False
+        response_data["Pill"] = {}
+
+        if 'image1' not in request.data:
+            return Response("Front image file not provided", status=status.HTTP_400_BAD_REQUEST)
+
+        front_img = request.data['image1']
+        back_img = request.data.get('image2')  # back_img will be None if not provided
+
+        ##############################################
+        ## Concurrently process front and back images
+        ##############################################
+        print(f"{'-'*20} Processing Images {'-'*20}")
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            # future_results = [executor.submit(image_scan, front_img)]
+            future_to_image = {
+                executor.submit(image_scan, front_img): 'front'
+            }
+
+
+            if back_img is not None:
+                # future_results.append(executor.submit(image_scan, back_img))
+                future_to_image[executor.submit(image_scan, back_img)] = 'back'
+
+            img_proc_results = []
+            for future in as_completed(future_to_image):
+                image_side = future_to_image[future]
+                try:
+                    detected_text, final_img = future.result()
+                    # Process each result here
+                    img_proc_results.append({
+                        'side': image_side,
+                        'detected_text': detected_text
+                    })
+                except Exception as exc:
+                    print(f"{image_side} generated an exception: {exc}")
         
-        file = request.data['file']
-        # You can now handle the uploaded image file as needed
-        # For example, save it to a model or pass it to another function for processing
-        # save the image to ./media/images/
-        # with open('./media/images/' + file.name, 'wb+') as destination:
-        #     for chunk in file.chunks():
-        #         destination.write(chunk)
-        print(type(file))
-        print(dir(file))
+        #########################
+        ## Process Image Results
+        #########################
+        if all(result['detected_text'] is None for result in img_proc_results):
+            result_json = json.dumps(response_data,indent=2)
+            return Response(result_json, status=status.HTTP_200_OK)
+        
+        print(f"\n\n{'-'*20} Interpreting Processing Results {'-'*20}")
+        all_detected_text = []
+        for img_proc_result in img_proc_results:
+            if img_proc_result['detected_text'] is not None:
+                all_detected_text.extend(img_proc_result['detected_text'])
+        print("all_detected_text = BEFORE", all_detected_text)
 
-        result = {}
-        start_time = time.time()
-        test = image_recognition(file)
-        end_time = time.time()
+        if len(all_detected_text) == 2:                                                     # remove substring
+            if all_detected_text[0] in all_detected_text[1]:
+                all_detected_text.pop(0)
+            elif all_detected_text[1] in all_detected_text[0]:
+                all_detected_text.pop(1)
+            else:                                                                           # concatenate the two strings
+                first_str = all_detected_text[0]
+                all_detected_text[0] = first_str + " " + all_detected_text[1]
+                all_detected_text[1] = all_detected_text[1] + " " + first_str
+        elif len(all_detected_text) >= 3:
+            for potential_superset in all_detected_text:
+                if all(other_str in potential_superset for other_str in all_detected_text if other_str != potential_superset):
+                    all_detected_text = [potential_superset]
+        print("all_detected_text = AFTER", all_detected_text)
 
-        result["Pill Detected"] = test.pill_detected
-        result["Imprint"] = test.imprint
+        # Perform shape and color detection
+        custom_colour, custom_shape, gpt_colour, gpt_shape = perform_shape_color_detection(final_img)
+        
+        ##########################
+        ## Fetch Pill Information
+        ##########################
+        print(f"\n\n{'-'*20} Fetching Pill Information {'-'*20}")
+        for text in all_detected_text:
+            pill_results = perform_web_scrape(front_side=text, 
+                                        back_side="", 
+                                        color=gpt_colour,
+                                        shape=gpt_shape, 
+                                        user=request.user)
+            if pill_results is None:
+                continue
+            
+            print(f"text: {text} -> {pill_results}")
+            for pill_result in pill_results:
+                print(f"text({type(text)}): {text} -- imp({type(pill_result['imprint'])}): {pill_result['imprint']} -- {str(pill_result['imprint']) == str(text)}")
+                if str(pill_result['imprint']) == str(text):
+                    print("Matching Pill Found")
+                    response_data["Pill Detected"] = True
+                    response_data["Probable pills"] = pill_result
+                    result_json = json.dumps(response_data,indent=2)
+                    return Response(result_json, status=status.HTTP_200_OK)
 
-        print(result)
-        print(f"Time taken for pill/imprint detection: {end_time - start_time} seconds")
 
-        print(dir(test))
-        # print(type(test.cropped_img))
 
-        start_time = time.time()
-        if(result["Pill Detected"]):
-            print("Pill Detected")
-            shape_test = shape_detection(test.cropped_img, cropped=True) # TODO: THIS WONT WORK
-        else:
-            print("Pill not detected")
-            shape_test = shape_detection(file)
-        result["Shape"] = shape_test.shape
-        print(result)
-        end_time = time.time()
-        print(f"Time taken for shape detection: {end_time - start_time} seconds")
-
-        test_colour = colour_detection(shape_test.cropped_img)
-        result["Colour"] = test_colour.colour
-
-        result_json = json.dumps(result,indent=2)
+        result_json = json.dumps(response_data,indent=2)
         print(result_json)
-
-
-        return Response("Image processed successfully", status=status.HTTP_200_OK)
-
+        return Response(result_json, status=status.HTTP_200_OK)
+    
+        
+# {
+#     "Pill detected": True/False,
+#     "Probable pills": [
+#         {
+#             "name": "",
+#             "imprint": "",
+#             "shape": "",
+#             "color": ""
+#         }
+#     ]
+# }
 
 # -------------- For Terminal CMD that adds json data to DB -------------- #
 
@@ -285,3 +445,5 @@ def add_items(request):
         serializer.save()
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
+
+

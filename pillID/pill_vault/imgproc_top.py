@@ -4,14 +4,14 @@ import cv2
 import numpy as np
 
 
-from imgproc_utils import save_image, get_exponent, load_image, image_to_bytes, find_most_recurring_number_or_none
-from imgproc_aws_rekog import setup_aws_client
-from imgproc_img_mnpltion import crop_to_contours, crop_image_largest_contour, crop_image_around_label
-from imgproc_text_proc import detect_text_with_aws_rekognition, extract_text_boxes, find_closest_contours_to_text, draw_text_boxes_on_image, extract_label_boxes, get_combined_bounding_box
-from imgproc_procs_ops import preprocess_image, compute_contours, find_largest_image, find_closest_label_box, find_covering_label_box
+from .imgproc_utils import save_image, get_exponent, load_image, convert_to_cv2, image_to_bytes, find_most_recurring_number_or_none
+from .imgproc_aws_rekog import setup_aws_client
+from .imgproc_img_mnpltion import crop_to_contours, crop_image_largest_contour, crop_image_around_label
+from .imgproc_text_proc import detect_text_with_aws_rekognition, extract_text_boxes, find_closest_contours_to_text, draw_text_boxes_on_image, extract_label_boxes, get_combined_bounding_box
+from .imgproc_procs_ops import preprocess_image, compute_contours, find_largest_image, find_closest_label_box, find_covering_label_box
 
-from colour_detection import colour_detection
-from shape_detection import shape_detection
+from .imgproc_colour_detection import colour_detection
+from .imgproc_shape_detection import shape_detection
 
 SAVE_ORIG_TEXT_IMGS = True # Save the initial image with text detections and bounding boxes
 SAVE_ORIG_LABEL_IMGS = True
@@ -87,12 +87,16 @@ def process_img_labels(cv2_img, client, draw_label_boxes=False):
 
 # ----------------- Main Function -----------------
 
-def process_image(image_path, image_name, pre_processed_imgs_path, save_img_prefix):
+def process_image(image_file, image_name, pre_processed_imgs_path, save_img_prefix):
     client = setup_aws_client()
-    cv2_img, img_height, img_width = load_image(image_path)
+    # cv2_img, img_height, img_width = load_image(image_path)
+    cv2_img = convert_to_cv2(image_file)
+    img_height, img_width = cv2_img.shape[:2]
+
+    print(f"Initial Image Processing...")
     edges = preprocess_image(cv2_img, 9)
     orig_img_contours = compute_contours(edges)
-
+    
     #########################
     # [1] Run Text detection
     #########################
@@ -107,7 +111,7 @@ def process_image(image_path, image_name, pre_processed_imgs_path, save_img_pref
         unique_text = list(set(all_detected_text))
         print("Unique Text: ", unique_text)
     else:
-        print("No text detected.")
+        print("**No text detected.")
 
     if SAVE_TEXT_BOX_IMGS and img_with_text_boxes is not None:
         save_image(img_with_text_boxes, image_name, pre_processed_imgs_path, image_cnt=save_img_prefix, prefix='original_text_boxes')
@@ -130,10 +134,10 @@ def process_image(image_path, image_name, pre_processed_imgs_path, save_img_pref
     original_label_confidences, original_label_boxes, cropped_label_images, img_with_lable_box = process_img_labels(cv2_img=cv2_img, 
                                                                     client=client,
                                                                     draw_label_boxes=SAVE_LABEL_BOX_IMGS)
-    print("Number of labels: ", len(original_label_boxes))
-    print(original_label_boxes)
-    for conf, label_box in zip(original_label_confidences, original_label_boxes):
-        print(f"Label conf {conf} -- has instance {True if label_box else False}")
+    # print("Number of labels: ", len(original_label_boxes))
+    # print(original_label_boxes)
+    # for conf, label_box in zip(original_label_confidences, original_label_boxes):
+    #     print(f"Label conf {conf} -- has instance {True if label_box else False}")
 
     if SAVE_ORIG_LABEL_IMGS and len(cropped_label_images) > 0:
         for img_idx, cropped_img_label in enumerate(cropped_label_images):
@@ -143,7 +147,7 @@ def process_image(image_path, image_name, pre_processed_imgs_path, save_img_pref
 
     # If number of unique text detected is greater than 3, return None
     if (text_result is not None) and len(unique_text) > 3:
-        print("Too much text detected in image.")
+        print("**Too much text detected in image.")
         return None, None
 
     #############################################
@@ -157,11 +161,12 @@ def process_image(image_path, image_name, pre_processed_imgs_path, save_img_pref
                                         cropped_label_images=cropped_label_images)
         return unique_text, chosen_img
     
-    print("Orig img detection FAILED")
+    print("**Initial image detection FAILED")
     
     ###############################
     # Option 2: Only text detected
     ###############################
+    print(f"\nIterative Image Processing...")
     if (text_result is not None) and (len(original_label_boxes) == 0):
         chosen_img = text_detected_no_label_processing(cv2_img=cv2_img,
                                            client=client, 
@@ -171,8 +176,7 @@ def process_image(image_path, image_name, pre_processed_imgs_path, save_img_pref
                                            original_text_cropped_img=cropped_clustered_img,
                                            image_name=image_name)
         if chosen_img is None:
-            print("No Decision Made")
-            # TODO: not sure what this function will be returning
+            print("**Iterative image detection FAILED")
             return unique_text, cropped_clustered_img
         return unique_text, chosen_img
     
@@ -197,9 +201,10 @@ def process_image(image_path, image_name, pre_processed_imgs_path, save_img_pref
                 return cropped_img_text, cropped_label_images[label_idx]
             
         if cropped_img_text is None:
+            print("**Iterative image detection FAILED")
             return None, None
 
-
+    print("**No text or labels detected in image")
     return None, None
     
 
@@ -251,7 +256,7 @@ def text_detected_no_label_processing(cv2_img, client, img_height, img_width, or
     max_conf = 0
 
     while blur <= 30:
-        print(f"\n## --- Iteration: {blur} --- ##")
+        print(f"## --- Blur: {blur} --- ##")
 
         outcome, result_data = max_crop_cycle(cv2_img=cv2_img,
                        client=client,
@@ -315,7 +320,7 @@ def max_crop_cycle(cv2_img, client, img_height, img_width, blur, original_text, 
     # [2] If the image is too small skip
     cropped_image_ratio = get_exponent((cropped_img.shape[0]*cropped_img.shape[1])/(img_height*img_width))
     if (cropped_image_ratio <= -5 ) or (cropped_image_ratio == 0):
-        print("Cropped Image Too Small")
+        print("\tCropped Image Too Small")
         return None, None
 
     # [3] Do text detection on image
@@ -326,40 +331,40 @@ def max_crop_cycle(cv2_img, client, img_height, img_width, blur, original_text, 
     if text_result is not None:
         all_detected_text = [ text_detection['DetectedText'] for text_detection in text_result['TextDetections']]
         unique_text = list(set(all_detected_text))
-        print("Unique Text: ", unique_text)
+        print("\tUnique Text: ", unique_text)
     else:
-        print("No text detected.")
+        print("\tNo text detected.")
 
     # [4] Do label detection on image
     label_confidences, label_boxes, cropped_label_images, img_with_lable_box = process_img_labels(cv2_img=cv2_img, 
                                                                     client=client,
                                                                     draw_label_boxes=SAVE_LABEL_BOX_IMGS)
-    print("Number of labels: ", len(label_boxes))
+    print("\tNumber of labels: ", len(label_boxes))
     for conf, label_box in zip(label_confidences, label_boxes):
-        print(f"Label conf {conf} -- has instance {True if label_box else False}")
+        print(f"\tLabel conf {conf} -- has instance {True if label_box else False}")
     
     # Neither
     if (text_result is None) and (len(label_confidences) == 0):
-        print("No text or labels detected in cropped img")
+        print("\tNo text or labels detected in cropped img")
         return None, None
     elif (text_result is None) and (len(label_confidences) > 0): # Label only, return highest conf
-       print("Only label detected")
+       print("\tOnly label detected")
        max_conf_idx = label_confidences.index(max(label_confidences))
        return "label", (label_confidences[max_conf_idx], cropped_label_images[max_conf_idx])
     elif (text_result is not None) and (len(label_confidences) == 0):   # text only, return 
         # Is the text detected the same as, or is a subset of the original text detections
             # Return original text cropped img
-        print("Only text detected")
+        print("\tOnly text detected")
         if (set(unique_text) == set(original_text)) or (set(unique_text).issubset(set(original_text))):
-            print("Detected text is subset of original text")
+            print("\tDetected text is subset of original text")
             return "text", unique_text
         elif (len(original_text) == 0):
-            print("Text detected in cropped label image")
+            print("\tText detected in cropped label image")
             return "cropped_text", unique_text
-        print("Detected text is NOT a subset of original text")
+        print("\tDetected text is NOT a subset of original text")
         return None, None
     else:
-        print("No text or label detected")
+        print("\tNo text or label detected")
         return None, None
 
 
@@ -439,8 +444,8 @@ def main():
     # print("Unique Text: ", unique_text)
     
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
 
 """
 

@@ -1,6 +1,7 @@
 import os, datetime, cv2, math
 from collections import Counter
-
+import numpy as np
+from PIL import Image
 
 def load_image(image_path):
     """
@@ -14,6 +15,18 @@ def load_image(image_path):
         raise FileNotFoundError(f"The image at {image_path} could not be loaded.")
     height, width = image.shape[:2]
     return image, height, width
+
+
+def convert_to_cv2(image_file):
+        # Read the image file in a PIL format
+        pil_image = Image.open(image_file)
+        pil_image = pil_image.convert('RGB')  # Ensure it's in RGB format
+
+        # Convert the PIL image to a cv2 (OpenCV) image
+        cv2_image = np.array(pil_image) 
+        # Convert RGB to BGR (what OpenCV uses)
+        cv2_image = cv2_image[:, :, ::-1].copy() 
+        return cv2_image
 
 
 def image_to_bytes(image):
@@ -74,3 +87,4 @@ def find_most_recurring_number_or_none(numbers):
     #     return None  # All numbers occur the same number of times
 
     return most_common_number
+

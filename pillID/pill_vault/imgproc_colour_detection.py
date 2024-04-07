@@ -23,7 +23,6 @@ class colour_detection:
         
         self.setup_image_params()
         self.setup_csv()
-        self.avg_all_pixels()
 
     def setup_image_params(self):
         self.H, self.W, _ = self.image.shape

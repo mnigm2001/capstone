@@ -20,13 +20,15 @@ class shape_detection :
         """
         self.image_input = image_input
         self.setup_image_params()
-        self.preprocessing()
-        self.find_contours()
-        self.determine_shape()
         # The following methods are commented out for brevity
         # self.encode_image()
         # self.detect_shape_gpt()
         # self.final_shape()
+    
+    def find_shape(self):
+        self.preprocessing()
+        self.find_contours()
+        self.determine_shape()
 
     def convert_to_cv2(self, image_file):
         # Read the image file in a PIL format
@@ -139,7 +141,7 @@ class shape_detection :
         elif 0.8 < aspect_ratio < 1.2:
             self.shape = "Round"
         else:
-            self.shape = "Oval" if aspect_ratio < 1.5 else "Oblong"
+            self.shape = "Oval" if aspect_ratio < 1.5 else "Capsule/Oblong"
     
     def encode_image(self):
         #with open(self.image_path, "rb") as image_file:
@@ -162,7 +164,26 @@ class shape_detection :
                 {
                     "role" : "user",
                     "content" : [
-                        {"type": "text", "text": "Given the following pill image, the list of possible shapes is:\nRound\nOval\nOblong\nEgg\n3 sided\n4 sided\nIn one word, select the shape that best represents this pill"},
+                        {"type": "text", "text": "Given the following pill image, the list of possible shapes is:\n \
+                            ('Barrel', 'Barrel'), \
+                            ('Capsule/Oblong', 'Capsule/Oblong'), \
+                            ('Character-shape', 'Character-shape'), \
+                            ('Egg-shape', 'Egg-shape'), \
+                            ('Eight-sided', 'Eight-sided'), \
+                            ('Oval', 'Oval'), \
+                            ('Figure eight-shape', 'Figure eight-shape'), \
+                            ('Five-sided', 'Five-sided'), \
+                            ('Four-sided', 'Four-sided'), \
+                            ('Gear-shape', 'Gear-shape'), \
+                            ('Heart-shape', 'Heart-shape'), \
+                            ('Kidney-shape', 'Kidney-shape'), \
+                            ('Rectangle', 'Rectangle'), \
+                            ('Round', 'Round'), \
+                            ('Seven-sided', 'Seven-sided'), \
+                            ('Six-sided', 'Six-sided'), \
+                            ('Three-sided', 'Three-sided'), \
+                            ('U-shape', 'U-shape'), \
+                         \nIn one word, select the shape that best represents this pill"},
                         {
                             "type" : "image_url",
                             "image_url": {
@@ -203,4 +224,5 @@ if __name__ == "__main__":
     print("Shape = ", obj.shape)
     obj.detect_shape_gpt()
     print("gbt_shape = ", obj.gbt_shape)
+
 
