@@ -18,11 +18,19 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
-import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.MultipartBody
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Response
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.meddetect.capstone/camera"
     private val REQUEST_IMAGE_CAPTURE = 1
+    private var imageUris: MutableList<Uri> = mutableListOf()
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -54,12 +62,22 @@ class MainActivity : FlutterActivity() {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
             val imageBitmap = data?.extras?.get("data") as? Bitmap
             imageBitmap?.let {
-                saveImageToStorage(it)
+                val imageUri = saveImageToStorage(it)
+                imageUri?.let { uri ->
+                    imageUris.add(uri)
+                    
+                    if (imageUris.size < 2) {
+                        openCamera()  // Take the second picture
+                    } else {
+                        sendImagesToServer(imageUris)
+                        imageUris.clear()  // Clear the list for next session
+                    }
+                }
             }
         }
     }
 
-    private fun saveImageToStorage(bitmap: Bitmap) {
+    private fun saveImageToStorage(bitmap: Bitmap): Uri? {
         val filename = "captured_image_${System.currentTimeMillis()}.jpg"
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
@@ -69,50 +87,45 @@ class MainActivity : FlutterActivity() {
             }
         }
 
-        try {
-            val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-            uri?.let {
-                contentResolver.openOutputStream(it)?.use { fos ->
-                    if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)) {
-                        throw IOException("Failed to save bitmap.")
-                    } else {
-                        Log.d("MainActivity", "Image saved to: $uri")
-                        // Send the image to the server after saving
-                        sendImageToServer(uri)
-                    }
-                } ?: throw IOException("Failed to get output stream.")
-            } ?: throw IOException("Failed to create new MediaStore record.")
-        } catch (e: Exception) {
-            Log.e("MainActivity", "Failed to save image", e)
+        return contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)?.also { uri ->
+            contentResolver.openOutputStream(uri)?.use { fos ->
+                if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)) {
+                    Log.e("MainActivity", "Failed to save bitmap.")
+                } else {
+                    Log.d("MainActivity", "Image saved to: $uri")
+                }
+            }
         }
     }
 
-    private fun sendImageToServer(imageUri: Uri) {
-        val inputStream = contentResolver.openInputStream(imageUri)
-        val fileName = "image_${System.currentTimeMillis()}.jpg"
+private fun sendImagesToServer(imageUris: List<Uri>) {
+    val client = OkHttpClient()
+    val requestBodyBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
 
-        inputStream?.let { stream ->
-            val buffer = stream.readBytes()
-            val requestBody = RequestBody.create(MediaType.parse("image/jpeg"), buffer)
-            val multipartBody = MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("file", fileName, requestBody)
-                .build()
-
-            val request = Request.Builder()
-                .url(http://127.0.0.1:8000/pill_vault/api/scan-image/)  // Replace with your actual endpoint URL
-                .post(multipartBody)
-                .build()
-
-            OkHttpClient().newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    Log.e("MainActivity", "Failed to send image", e)
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    Log.d("MainActivity", "Response received: ${response.body()?.string()}")
-                }
-            })
+    imageUris.forEachIndexed { index, uri ->
+        val fileBody = contentResolver.openInputStream(uri)?.readBytes()?.toRequestBody("image/jpeg".toMediaTypeOrNull())
+        fileBody?.let {
+            // Correctly label images as "image1" and "image2"
+            val imageLabel = "image${index + 1}" // will be image1 for the first image and image2 for the second
+            requestBodyBuilder.addFormDataPart(imageLabel, "${imageLabel}.jpg", it)
         }
     }
+
+    val requestBody = requestBodyBuilder.build()
+    val request = Request.Builder()
+        .url("http://10.0.0.242:8000/pill_vault/api/scan-image/") // Make sure this URL is correct
+        .post(requestBody)
+        .build()
+
+    client.newCall(request).enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            Log.e("MainActivity", "Failed to send image", e)
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            Log.d("MainActivity", "Response received: ${response.body?.string()}")
+        }
+    })
+}
+
 }

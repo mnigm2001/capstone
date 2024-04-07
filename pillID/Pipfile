@@ -8,6 +8,13 @@ pillow = "*"
 djangorestframework = "*"
 celery = "*"
 redis = "*"
+python-dotenv = "*"
+bs4 = "*"
+requests = "*"
+boto3 = "*"
+opencv-python = "*"
+pandas = "*"
+openai = "*"
 
 [dev-packages]
 
