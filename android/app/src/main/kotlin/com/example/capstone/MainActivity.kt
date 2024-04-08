@@ -13,11 +13,8 @@ import android.provider.MediaStore
 import android.util.Log
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.OutputStream
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.OkHttpClient
@@ -26,6 +23,8 @@ import okhttp3.MultipartBody
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Response
+import org.json.JSONObject
+import java.io.IOException
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.meddetect.capstone/camera"
@@ -34,7 +33,7 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
+        MethodChannel(flutterEngine.dartExecutor?.binaryMessenger ?: return, CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "openNativeCamera" -> {
@@ -104,7 +103,7 @@ private fun sendImageToServer(imageUri: Uri) {
         val requestBody = buffer.toRequestBody(mediaType)
         val multipartBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
-            .addFormDataPart("file", fileName, requestBody)
+            .addFormDataPart("image1", fileName, requestBody) // Changed "file" to "image1"
             .build()
 
         val request = Request.Builder()
@@ -118,9 +117,38 @@ private fun sendImageToServer(imageUri: Uri) {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                response.body?.let { responseBody ->
-                    val responseString = responseBody.string()
+                response.use { responseBody ->
+                    val responseString = responseBody.body?.string()
                     Log.d("MainActivity", "Response received: $responseString")
+
+                    responseString?.let {
+                        try {
+                            val jsonObject = JSONObject(it)
+                            val pillMap = mapOf(
+                                "name" to jsonObject.optString("name"),
+                                "dosage" to jsonObject.optString("dosage"),
+                                "description" to jsonObject.optString("description"),
+                                "imageUrl" to jsonObject.optString("imageUrl"),
+                                "purpose" to jsonObject.optString("purpose"),
+                                "applicationMethod" to jsonObject.optString("applicationMethod"),
+                                "sideEffects" to jsonObject.optString("sideEffects"),
+                                "imprint" to jsonObject.optString("imprint"),
+                                "shape" to jsonObject.optString("shape"),
+                                "color" to jsonObject.optString("color")
+                            )
+
+                            // Now you can use this map to send data to Flutter
+                            runOnUiThread {
+                                // Use MethodChannel to send the pill data back to Flutter
+                                MethodChannel(
+                                    flutterEngine?.dartExecutor?.binaryMessenger ?: return@runOnUiThread,
+                                    CHANNEL
+                                ).invokeMethod("onPillScanned", pillMap)
+                            }
+                        } catch (e: Exception) {
+                            Log.e("MainActivity", "Error parsing response", e)
+                        }
+                    }
                 }
             }
         })

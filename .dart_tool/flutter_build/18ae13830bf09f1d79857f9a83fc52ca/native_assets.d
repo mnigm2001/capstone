@@ -1,0 +1,1 @@
+ C:\\Users\\Mohamed\\Projects\\MedDetect\\capstone\\.dart_tool\\flutter_build\\18ae13830bf09f1d79857f9a83fc52ca\\native_assets.yaml: 
