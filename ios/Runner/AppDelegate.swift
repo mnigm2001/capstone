@@ -42,10 +42,15 @@ import Flutter
 
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         if let image = info[.originalImage] as? UIImage {
-            saveImageTemporarily(image: image)
-        }
-        picker.dismiss(animated: true) {
-            self.flutterResult?(nil)
+            saveImageTemporarily(image: image) { fileURL in
+                self.sendImageToServer(imageURL: fileURL) {
+                    DispatchQueue.main.async {
+                        picker.dismiss(animated: true) {
+                            self.flutterResult?("Image capturing completed")
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -55,7 +60,7 @@ import Flutter
         }
     }
 
-    private func saveImageTemporarily(image: UIImage) {
+    private func saveImageTemporarily(image: UIImage, completion: @escaping (URL) -> Void) {
         let fileManager = FileManager.default
         if let data = image.jpegData(compressionQuality: 1.0) {
             do {
@@ -64,10 +69,58 @@ import Flutter
                 let fileURL = tempDirectory.appendingPathComponent(fileName)
                 try data.write(to: fileURL)
                 print("Image saved at \(fileURL.path)")
-                // Store this path if needed to access the image later
+                completion(fileURL)
             } catch {
                 print("Error saving image: \(error)")
             }
+        }
+    }
+
+    private func sendImageToServer(imageURL: URL, completion: @escaping () -> Void) {
+        guard let url = URL(string: "http://10.0.0.242:8000/pill_vault/api/scan-image/") else {
+            print("Invalid URL")
+            completion()
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        let boundary = "Boundary-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        var body = Data()
+        let filename = imageURL.lastPathComponent
+        if let imageData = try? Data(contentsOf: imageURL) {
+            body.append("--\(boundary)\r\n")
+            body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n")
+            body.append("Content-Type: image/jpeg\r\n\r\n")
+            body.append(imageData)
+            body.append("\r\n")
+        }
+
+        body.append("--\(boundary)--\r\n")
+        request.httpBody = body
+
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error sending image: \(error)")
+            } else if let response = response as? HTTPURLResponse, response.statusCode == 200 {
+                print("Image sent successfully")
+            } else {
+                print("Error sending image. Response: \(String(describing: response))")
+            }
+            completion()
+        }
+
+        task.resume()
+    }
+}
+
+extension Data {
+    mutating func append(_ string: String) {
+        if let data = string.data(using: .utf8) {
+            append(data)
         }
     }
 }
