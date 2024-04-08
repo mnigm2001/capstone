@@ -37,20 +37,22 @@ class PillSerializer(serializers.ModelSerializer):
 class ScrapedPillSerializer(serializers.Serializer):
 
     name = serializers.CharField(max_length=255)
+    imprint = serializers.CharField(max_length=255)
     color = serializers.CharField(max_length=255)
     shape = serializers.CharField(max_length=255)
     # Include other fields as necessary
 
     def create(self, validated_data):
         # Logic to create and return a new Pill object from validated data
-        print('validated_data = ', validated_data)
+        # print('validated_data = ', validated_data)
         return Pill.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
         # Optional: Logic to update an existing Pill object with validated data
-        print('validated_data2 = ', validated_data)
+        # print('validated_data2 = ', validated_data)
 
         instance.name = validated_data.get('name', instance.name)
+        instance.name = validated_data.get('imprint', instance.name)
         instance.color = validated_data.get('Color', instance.color)
         instance.shape = validated_data.get('Shape', instance.shape)
         # Update other fields as necessary

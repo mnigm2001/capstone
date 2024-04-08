@@ -1,7 +1,7 @@
 
 import cv2
 import numpy as np
-from imgproc_utils import image_to_bytes
+from .imgproc_utils import image_to_bytes
 
 
 # -------------------- AWS Rekognition Text Detection -------------------- #
@@ -112,7 +112,7 @@ def find_closest_contours_to_text(cv2_img, contours, text_boxes, image_width, im
     # Calculate the proportion of the text area to the image area
     text_area = sum([(box['Width'] * box['Height']) for box in text_boxes]) * image_area
     text_area_proportion = text_area / image_area
-    print("Text area:", text_area_proportion)
+    # print("Text area:", text_area_proportion)
 
     # Determine the number of contours to consider based on text area proportion
     if text_area_proportion < 0.01:

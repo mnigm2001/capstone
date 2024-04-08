@@ -3,8 +3,8 @@ import boto3
 import cv2
 import json
 from PIL import Image
-from .colour_detection import colour_detection
-from .shape_detection import shape_detection
+from .imgproc_colour_detection import colour_detection
+from .imgproc_shape_detection import shape_detection
 import numpy as np
 
 import os

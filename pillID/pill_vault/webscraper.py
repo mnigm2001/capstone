@@ -352,6 +352,7 @@ class MyDrug:
         shape = self.get_shape_number(self.shape)
 
         if not color or not shape:
+            print("Color or shape")
             return None
 
         data = dict()
@@ -368,6 +369,11 @@ class MyDrug:
         #Retrieving the entire results page
         drug_list_with_ads = content.find("div", attrs={"class":"ddc-pid-list"})
 
+        # print(drug_list_with_ads)
+
+        if drug_list_with_ads is None:
+            return None
+        
         #Excluding Ads
         if(mode):
             drug_list_without_ads = drug_list_with_ads.find_all("div", attrs={"class":"ddc-card"})
@@ -386,7 +392,10 @@ class MyDrug:
             name = label.text
             link = "https://www.drugs.com" + label['href']
 
-            strength, imprint, color, shape = drug.find_all("dd") #Extracting individual data
+            try:
+                strength, imprint, color, shape = drug.find_all("dd") #Extracting individual data
+            except ValueError:
+                return None
             drug_info = [image['src'], link, strength.text, imprint.text, color.text, shape.text]
             data[name] = dict(zip(drug_table_titles, drug_info))
         
