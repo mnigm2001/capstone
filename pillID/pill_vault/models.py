@@ -114,19 +114,20 @@ class Pill(models.Model):
     imprint = models.CharField(max_length=255)
     shape = models.CharField(max_length=255, choices=SHAPE_OPTIONS)
 
-    # generic_name = models.CharField(max_length=255)
-    # size = models.SmallIntegerField()
-    # symptoms = models.CharField(max_length=255)
-    # side_effects = models.CharField(max_length=255)
-    # prescription = models.BooleanField(default=True)
+    # Optional fields
+    generic_name = models.CharField(max_length=255, blank=True)
+    size = models.SmallIntegerField(null=True, blank=True)
+    symptoms = models.CharField(max_length=255, blank=True)
+    side_effects = models.CharField(max_length=255, blank=True)
+    prescription = models.BooleanField(default=False)
 
     # ## Aditional fields
-    # drug_class = models.CharField(max_length=255)
-    # pregnancy = models.CharField(max_length=255)
-    # CSA_schedule = models.CharField(max_length=255)
-    # labeler_supplier = models.CharField(max_length=255)
-    # national_drug_code = models.CharField(max_length=255)
-    # inactive_ingredients = models.CharField(max_length=255)
+    drug_class = models.CharField(max_length=255, blank=True)
+    pregnancy = models.CharField(max_length=255, blank=True)
+    CSA_schedule = models.CharField(max_length=255, blank=True)
+    labeler_supplier = models.CharField(max_length=255, blank=True)
+    national_drug_code = models.CharField(max_length=255, blank=True)
+    inactive_ingredients = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return self.name

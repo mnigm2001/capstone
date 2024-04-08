@@ -116,9 +116,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'pill_vault',
         'HOST': 'localhost',
-        'USER': 'alasfarm',
-        'PASSWORD': 'Moman14-14-14',
-        'PORT' : '3306',
+        'USER': 'root',
+        'PASSWORD': 'XT45cc=7pC!=',
     }
 }
 

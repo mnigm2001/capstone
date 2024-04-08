@@ -13,6 +13,7 @@ from rest_framework.parsers import MultiPartParser
 
 import time, json, os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from itertools import permutations, combinations
 
 ## For Token Gen
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -189,12 +190,21 @@ def perform_web_scrape(front_side, back_side, color, shape, user):
         )
 
     # If there's a match and it has associated results, and it wasn't just created, return those pills
-    if not created:
-        pills = Pill.objects.filter(search_history=matching_history).distinct()
-        if pills.exists():
-            print("Matching History Found")
-            response_serializer = PillSerializer(pills, many=True)
-            return response_serializer.data
+    # if not created:
+    #     pills = Pill.objects.filter(search_history=matching_history).distinct()
+    #     if pills.exists():
+    #         print("Matching History Found")
+    #         response_serializer = PillSerializer(pills, many=True)
+    #         return response_serializer.data
+
+    # Search in the Pill database for a pill with matching imprint=front_side and back_side seperated by a space
+    print(f"front_side = {front_side}")
+    pills = Pill.objects.filter(imprint=front_side)
+    if pills.exists():
+        print("Matching Pill Found")
+        matching_history.results.set(pills)
+        response_serializer = PillSerializer(pills, many=True)
+        return response_serializer.data
 
     # Proceed with web scraping if no matching history with pill results was found or it was just created
     print("No Matching History Found: Proceeding with Web Scraping...")
@@ -370,6 +380,19 @@ class ImageUploadView(APIView):
         for img_proc_result in img_proc_results:
             if img_proc_result['detected_text'] is not None:
                 all_detected_text.extend(img_proc_result['detected_text'])
+
+        # Remove strings with special characters, allow only alphanumeric strings and spaces
+        for text in all_detected_text:
+            if (not text.strip().isalnum()):
+                if ' ' not in text:
+                   all_detected_text.remove(text)
+                else:
+                    for sub_text in text.split():
+                        if not sub_text.isalnum():
+                            all_detected_text.remove(text)
+                            break
+            
+        # all_detected_text = [text for text in all_detected_text if text.strip.isalnum() or ' ' in text]
         print("all_detected_text = BEFORE", all_detected_text)
 
         if len(all_detected_text) == 2:                                                     # remove substring
@@ -382,9 +405,29 @@ class ImageUploadView(APIView):
                 all_detected_text[0] = first_str + " " + all_detected_text[1]
                 all_detected_text[1] = all_detected_text[1] + " " + first_str
         elif len(all_detected_text) >= 3:
+
+            superset_found = False
             for potential_superset in all_detected_text:
                 if all(other_str in potential_superset for other_str in all_detected_text if other_str != potential_superset):
                     all_detected_text = [potential_superset]
+                    superset_found = True
+            
+            if not superset_found:
+                # all_permutations = permutations(all_detected_text, 2)
+                # all_detected_text = [' '.join(permutation) for permutation in all_permutations]
+
+                concatenated_combinations = set()
+                # Generate combinations for every size
+                for i in range(2, len(all_detected_text) + 1):
+                    for combo in combinations(all_detected_text, i):
+                        # Add the combination itself
+                        concatenated_combinations.add(' '.join(combo))
+                        # Generate all permutations for the combination
+                        for perm in permutations(combo):
+                            concatenated_combinations.add(' '.join(perm))
+                all_detected_text = list(concatenated_combinations)
+
+
         print("all_detected_text = AFTER", all_detected_text)
 
         # Perform shape and color detection

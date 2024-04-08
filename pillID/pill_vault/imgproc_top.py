@@ -2,7 +2,7 @@
 import os
 import cv2
 import numpy as np
-
+import re
 
 from .imgproc_utils import save_image, get_exponent, load_image, convert_to_cv2, image_to_bytes, find_most_recurring_number_or_none
 from .imgproc_aws_rekog import setup_aws_client
@@ -146,9 +146,12 @@ def process_image(image_file, image_name, pre_processed_imgs_path, save_img_pref
 
 
     # If number of unique text detected is greater than 3, return None
-    if (text_result is not None) and len(unique_text) > 3:
+    if (text_result is not None) and len(unique_text) > 5:
         print("**Too much text detected in image.")
         return None, None
+    
+    # Remove special characters
+    # TODO
 
     #############################################
     # Option 1: Both text and label are detected
@@ -277,6 +280,7 @@ def text_detected_no_label_processing(cv2_img, client, img_height, img_width, or
                 max_conf = confidence
                 final_img = cropped_img
         else:
+
             print("UNEXPECTED OUTCOME")
         blur += 2
     
