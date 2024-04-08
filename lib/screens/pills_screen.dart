@@ -5,53 +5,21 @@ import 'pill_details_screen.dart'; // Make sure to import the Pill Details Page
 class PillsPage extends StatefulWidget {
   @override
   _PillsPageState createState() => _PillsPageState();
+
+  void addPill(Pill pill) {
+    _PillsPageState state = _PillsPageState();
+    state.addPill(pill);
+  }
 }
 
 class _PillsPageState extends State<PillsPage> {
-  final List<Pill> pills = [
-    Pill(
-      name: "Aspirin",
-      dosage: "325 mg",
-      description: "Pain relief",
-      imageUrl: "assets/images/aspirin.png",
-      purpose: "Used to reduce pain, fever, or inflammation.",
-      applicationMethod:
-          "Take this medication by mouth with a full glass of water.",
-      sideEffects: "May cause nausea, vomiting, or upset stomach.",
-      imprint: "ABC",
-      shape: "Oval",
-      color: "Blue",
-    ),
-    Pill(
-      name: "Amoxicillin",
-      dosage: "875 mg",
-      description: "Bacterial Treater",
-      imageUrl: "assets/images/amoxicillin.png",
-      purpose:
-          "Commonly used to treat a wide variety of bacterial infections. It's particularly effective against infections in the ear, nose, throat, urinary tract, skin, and lower respiratory system.",
-      applicationMethod:
-          "Often taken orally with water, and can be taken with or without food.",
-      sideEffects:
-          "May cause nausea, vomiting, or diarrhea. Allergic reactions are possible, especially in individuals with a history of penicillin allergy",
-      imprint: "ABC",
-      shape: "Oval",
-      color: "Blue",
-    ),
-    Pill(
-        name: "Ibuprofen",
-        dosage: "200 mg",
-        description: "Anti-inflammatory",
-        imageUrl: "assets/images/ibuprofen.png",
-        purpose:
-            "Widely used as an analgesic for relieving pain, as an antipyretic for reducing fever, and as an anti-inflammatory medication. Effective for treating headaches, toothaches, back pain, arthritis, menstrual cramps, and minor injuries.",
-        applicationMethod:
-            "Usually taken orally with a full glass of water, and it's recommended to take it with food or milk to decrease the chance of stomach upset.",
-        sideEffects:
-            "May cause upset stomach, nausea, dizziness, or drowsiness. More serious but rare side effects include heart problems or gastrointestinal bleeding.",
-        imprint: "123",
-        shape: "Round",
-        color: "White"),
-  ];
+  final List<Pill> pills = [];
+
+  void addPill(Pill pill) {
+    setState(() {
+      pills.add(pill);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
