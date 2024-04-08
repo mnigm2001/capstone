@@ -1,4 +1,3 @@
-
 package com.meddetect.capstone
 
 import android.Manifest
@@ -99,55 +98,32 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-private fun sendImageToServer(imageUri: Uri) {
-    val inputStream = contentResolver.openInputStream(imageUri)
-    val fileName = "image_${System.currentTimeMillis()}.jpg"
+    private fun sendImagesToServer(imageUris: List<Uri>) {
+        val client = OkHttpClient()
+        val requestBodyBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
 
-    inputStream?.let { stream ->
-        val buffer = stream.readBytes()
-        val mediaType = "image/jpeg".toMediaTypeOrNull()
-        val requestBody = buffer.toRequestBody(mediaType)
-        val multipartBody = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart("file", fileName, requestBody)
-            .build()
+        imageUris.forEachIndexed { index, uri ->
+            val fileBody = contentResolver.openInputStream(uri)?.readBytes()?.toRequestBody("image/jpeg".toMediaTypeOrNull())
+            fileBody?.let {
+                val imageLabel = "image${index + 1}"
+                requestBodyBuilder.addFormDataPart(imageLabel, "$imageLabel.jpg", it)
+            }
+        }
 
+        val requestBody = requestBodyBuilder.build()
         val request = Request.Builder()
-            .url("http://10.0.0.242:8000/pill_vault/api/scan-image/")  // Replace with your actual endpoint URL
-            .post(multipartBody)
+            .url("http://10.0.0.242:8000/pill_vault/api/scan-image/")
+            .post(requestBody)
             .build()
 
-        OkHttpClient().newCall(request).enqueue(object : Callback {
+        client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e("MainActivity", "Failed to send image", e)
             }
 
             override fun onResponse(call: Call, response: Response) {
-                response.body?.let { responseBody ->
-                    val responseString = responseBody.string()
-                    Log.d("MainActivity", "Response received: $responseString")
-                }
+                Log.d("MainActivity", "Response received: ${response.body?.string()}")
             }
         })
     }
-
-    val requestBody = requestBodyBuilder.build()
-    val request = Request.Builder()
-        .url("http://10.0.0.242:8000/pill_vault/api/scan-image/") // Make sure this URL is correct
-        .post(requestBody)
-        .build()
-
-    client.newCall(request).enqueue(object : Callback {
-        override fun onFailure(call: Call, e: IOException) {
-            Log.e("MainActivity", "Failed to send image", e)
-        }
-
-        override fun onResponse(call: Call, response: Response) {
-            Log.d("MainActivity", "Response received: ${response.body?.string()}")
-        }
-    })
-}
-
-}
-
 }
