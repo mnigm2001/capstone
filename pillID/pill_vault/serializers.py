@@ -52,7 +52,7 @@ class ScrapedPillSerializer(serializers.Serializer):
         # print('validated_data2 = ', validated_data)
 
         instance.name = validated_data.get('name', instance.name)
-        instance.name = validated_data.get('imprint', instance.name)
+        instance.imprint = validated_data.get('imprint', instance.imprint)
         instance.color = validated_data.get('Color', instance.color)
         instance.shape = validated_data.get('Shape', instance.shape)
         # Update other fields as necessary
@@ -69,3 +69,8 @@ class PillReminderSerializer(serializers.ModelSerializer):
     class Meta:
         model = PillReminder
         fields = '__all__'
+
+class PillInfoSerializerVerbose(serializers.ModelSerializer):
+    class Meta:
+        model = Pill
+        fields = ('purpose', 'application', 'side_effects', 'strength', 'image', 'name', 'imprint', 'shape', 'color')
