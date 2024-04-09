@@ -73,4 +73,5 @@ class PillReminderSerializer(serializers.ModelSerializer):
 class PillInfoSerializerVerbose(serializers.ModelSerializer):
     class Meta:
         model = Pill
-        fields = ('purpose', 'application', 'side_effects', 'strength', 'image', 'name', 'imprint', 'shape', 'color')
+        # fields = ('purpose', 'application', 'side_effects', 'strength', 'image', 'name', 'imprint', 'shape', 'color')
+        fields = ('purpose', 'application', 'side_effects', 'strength', 'name', 'imprint', 'shape', 'color')
