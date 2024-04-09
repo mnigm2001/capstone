@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'camera_screen.dart';
-import 'pill.dart';
-import 'pills_screen.dart';
+import 'package:camera/camera.dart';
 
 class GuestOptionsScreen extends StatefulWidget {
   final bool showDisclaimer;
@@ -30,39 +28,15 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
   ];
   final List<String> _shapes = ['Round', 'Oblong', 'Oval'];
 
-  final TextStyle commonTextStyle =
-      TextStyle(color: Color(0xFF0A84FF), fontSize: 20);
+  final TextStyle commonTextStyle = TextStyle(color: Color(0xFF0A84FF), fontSize: 20);
   final EdgeInsets commonPadding = EdgeInsets.symmetric(vertical: 15);
-  static const platform = MethodChannel('com.meddetect.capstone/camera');
 
   @override
   void initState() {
     super.initState();
-    platform.setMethodCallHandler(_handleMethod);
     if (widget.showDisclaimer) {
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) => _showDisclaimerDialog(context));
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showDisclaimerDialog(context));
     }
-  }
-
-  Future<dynamic> _handleMethod(MethodCall call) async {
-    if (call.method == "onPillScanned") {
-      final pillData = Map<String, dynamic>.from(call.arguments);
-      Pill pill = Pill.fromMap(pillData);
-      _addScannedPillToPillsPage(pill);
-    }
-  }
-
-  void _addScannedPillToPillsPage(Pill pill) {
-    PillsPage pillsPage = PillsPage();
-    pillsPage.addPill(pill);
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => pillsPage,
-      ),
-    );
   }
 
   void _showDisclaimerDialog(BuildContext context) {
@@ -73,8 +47,7 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("Disclaimer!"),
-          content: Text(
-              "Results may not be perfect, contact your physician for serious concerns. Do you wish to proceed?"),
+          content: Text("Results may not be perfect, contact your physician for serious concerns. Do you wish to proceed?"),
           actions: <Widget>[
             TextButton(
               child: Text("Yes"),
@@ -82,17 +55,16 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
                 Navigator.of(context).pop(); // Dismiss the dialog
               },
               style: TextButton.styleFrom(
-                foregroundColor: Color(0xFF0A84FF),
+                foregroundColor: Color(0xFF0A84FF), // Blue color for text
               ),
             ),
             TextButton(
               child: Text("No"),
               onPressed: () {
-                Navigator.of(context).popUntil(
-                    (route) => route.isFirst); // Go back to the login page
+                Navigator.of(context).popUntil((route) => route.isFirst); // Go back to the login page
               },
               style: TextButton.styleFrom(
-                foregroundColor: Color(0xFF0A84FF),
+                foregroundColor: Color(0xFF0A84FF), // Blue color for text
               ),
             ),
           ],
@@ -113,12 +85,13 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
       );
     } else {
       print(
-          'Searching for shape: $_selectedShape, color: $_selectedColor, imprint 1: ${_imprint1Controller.text}, imprint 2: ${_imprint2Controller.text}');
+          'Searching for shape: $_selectedShape, color: ${_colorController.text}, imprint 1: ${_imprint1Controller.text}, imprint 2: ${_imprint2Controller.text}');
       // Add search logic here
     }
   }
 
   Widget _buildShapeDropdown() {
+    // Define a map of shape names to their image paths
     Map<String, String> shapeImages = {
       'Round': 'assets/images/round.png',
       'Oblong': 'assets/images/oblong.png',
@@ -128,7 +101,10 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
       value: _selectedShape,
       decoration: InputDecoration(
         labelText: 'Shape',
-        labelStyle: commonTextStyle,
+        labelStyle: TextStyle(
+          color: Color(0xFF0A84FF),
+          fontSize: 20,
+        ), // Set the color here
         border: OutlineInputBorder(),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Color(0xFF0A84FF)),
@@ -149,11 +125,11 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
             children: <Widget>[
               Image.asset(
                 entry.value,
-                width: 30,
+                width: 30, // Adjust the size as needed
                 height: 30,
               ),
-              SizedBox(width: 8),
-              Text(entry.key, style: commonTextStyle),
+              SizedBox(width: 8), // Spacing between image and text
+              Text(entry.key, style: TextStyle(color: Color(0xFF0A84FF))),
             ],
           ),
         );
@@ -175,7 +151,10 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
       value: _selectedColor,
       decoration: InputDecoration(
         labelText: 'Color',
-        labelStyle: commonTextStyle,
+        labelStyle: TextStyle(
+          color: Color(0xFF0A84FF),
+          fontSize: 20,
+        ),
         border: OutlineInputBorder(),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Color(0xFF0A84FF)),
@@ -200,7 +179,7 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
                 height: 30,
               ),
               SizedBox(width: 8),
-              Text(entry.key, style: commonTextStyle),
+              Text(entry.key, style: TextStyle(color: Color(0xFF0A84FF))),
             ],
           ),
         );
@@ -215,16 +194,16 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
       decoration: InputDecoration(
         labelText: isOptional ? '$label (Optional)' : label,
         labelStyle: commonTextStyle,
-        border: OutlineInputBorder(),
-        enabledBorder: OutlineInputBorder(
+        border: const OutlineInputBorder(),
+        enabledBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Color(0xFF0A84FF)),
         ),
-        focusedBorder: OutlineInputBorder(
+        focusedBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Color(0xFF0A84FF)),
         ),
       ),
-      style: commonTextStyle,
-      cursorColor: Color(0xFF0A84FF),
+      style: const TextStyle(color: Color(0xFF0A84FF), fontSize: 20),
+      cursorColor: Color(0xFF0A84FF), // Set the cursor color here
     );
   }
 
@@ -251,6 +230,7 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
               children: <Widget>[
                 ElevatedButton(
                   onPressed: () async {
+                    // Since you're using native camera functionality, you no longer need to pass the camera object
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -286,7 +266,10 @@ class _GuestOptionsScreenState extends State<GuestOptionsScreen> {
                 const SizedBox(height: 10),
                 _buildColorDropdown(),
                 const SizedBox(height: 10),
-                _buildInputField('Imprint 1', _imprint1Controller),
+                _buildInputField(
+                  'Imprint 1',
+                  _imprint1Controller,
+                ),
                 const SizedBox(height: 10),
                 _buildInputField('Imprint 2', _imprint2Controller,
                     isOptional: true),

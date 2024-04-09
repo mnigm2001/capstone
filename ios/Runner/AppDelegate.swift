@@ -17,10 +17,9 @@ import Flutter
 
         cameraChannel.setMethodCallHandler { [weak self] (call, result) in
             self?.flutterResult = result
-            switch call.method {
-            case "openNativeCamera":
+            if call.method == "openNativeCamera" {
                 self?.openCamera(rootViewController: controller)
-            default:
+            } else {
                 result(FlutterMethodNotImplemented)
             }
         }
@@ -35,7 +34,6 @@ import Flutter
             imagePicker?.sourceType = .camera
             rootViewController.present(imagePicker!, animated: true, completion: nil)
         } else {
-            print("Camera not available")
             flutterResult?("Camera not available")
         }
     }
@@ -46,7 +44,7 @@ import Flutter
                 self.sendImageToServer(imageURL: fileURL) {
                     DispatchQueue.main.async {
                         picker.dismiss(animated: true) {
-                            self.flutterResult?("Image capturing completed")
+                            // The response handling will be in sendImageToServer
                         }
                     }
                 }
@@ -77,8 +75,11 @@ import Flutter
     }
 
     private func sendImageToServer(imageURL: URL, completion: @escaping () -> Void) {
-        guard let url = URL(string: "http://10.0.0.242:8000/pill_vault/api/scan-image/") else {
+        guard let url = URL(string: "http://172.20.10.2:8000/pill_vault/api/scan-image/") else {
             print("Invalid URL")
+            DispatchQueue.main.async {
+                self.flutterResult?("Invalid URL")
+            }
             completion()
             return
         }
@@ -93,7 +94,7 @@ import Flutter
         let filename = imageURL.lastPathComponent
         if let imageData = try? Data(contentsOf: imageURL) {
             body.append("--\(boundary)\r\n")
-            body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n")
+            body.append("Content-Disposition: form-data; name=\"image1\"; filename=\"\(filename)\"\r\n")
             body.append("Content-Type: image/jpeg\r\n\r\n")
             body.append(imageData)
             body.append("\r\n")
@@ -102,14 +103,65 @@ import Flutter
         body.append("--\(boundary)--\r\n")
         request.httpBody = body
 
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("Error sending image: \(error)")
-            } else if let response = response as? HTTPURLResponse, response.statusCode == 200 {
-                print("Image sent successfully")
-            } else {
-                print("Error sending image. Response: \(String(describing: response))")
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let self = self else {
+                completion()
+                return
             }
+
+            if let error = error {
+                print("Network error: \(error)")
+                DispatchQueue.main.async {
+                    self.flutterResult?("Network error: \(error)")
+                }
+                completion()
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                print("HTTP Response Code: \(httpResponse.statusCode)")
+                if httpResponse.statusCode != 200 {
+                    DispatchQueue.main.async {
+                        self.flutterResult?("HTTP Error: \(httpResponse.statusCode)")
+                    }
+                    completion()
+                    return
+                }
+            }
+
+if let data = data {
+    let responseString = String(data: data, encoding: .utf8) ?? "Invalid response data"
+    print("Raw Response String: \(responseString)")
+
+    // Debug: Print the data as bytes to inspect any hidden characters
+    print("Data bytes: \(data as NSData)")
+
+    do {
+        // Using .allowFragments to handle cases where the JSON might not start with an array or object
+        if let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any] {
+            print("JSON Response: \(json)")
+            DispatchQueue.main.async {
+                self.flutterResult?(json)
+            }
+        } else {
+            print("Invalid JSON format")
+            DispatchQueue.main.async {
+                self.flutterResult?("Invalid JSON format")
+            }
+        }
+    } catch {
+        print("JSON parsing error: \(error)")
+        DispatchQueue.main.async {
+            self.flutterResult?("JSON parsing error: \(error)")
+        }
+    }
+} else {
+    print("No data received")
+    DispatchQueue.main.async {
+        self.flutterResult?("No data received")
+    }
+}
+
             completion()
         }
 

@@ -1,41 +1,47 @@
 class Pill {
-  final String name;
-  final String dosage;
-  final String description;
-  final String imageUrl;
-  final String purpose;
-  final String applicationMethod;
-  final String sideEffects;
-  final String imprint;
-  final String shape;
-  final String color;
+  String name;
+  String color;
+  String imprint;
+  String shape;
+  String strength; // New property for dosage
+  String purpose; // New property for purpose
+  String application; // New property for application method
+  String side_effects; // New property for side effects
 
   Pill({
     required this.name,
-    required this.dosage,
-    required this.description,
-    required this.imageUrl,
-    required this.purpose,
-    required this.applicationMethod,
-    required this.sideEffects,
+    required this.color,
     required this.imprint,
     required this.shape,
-    required this.color,
+    required this.strength,
+    required this.purpose,
+    required this.application,
+    required this.side_effects,
   });
 
-  // Add a factory constructor to create a Pill instance from a map.
   factory Pill.fromMap(Map<String, dynamic> map) {
     return Pill(
       name: map['name'] ?? '',
-      dosage: map['dosage'] ?? '',
-      description: map['description'] ?? '',
-      imageUrl: map['imageUrl'] ?? '',
-      purpose: map['purpose'] ?? '',
-      applicationMethod: map['applicationMethod'] ?? '',
-      sideEffects: map['sideEffects'] ?? '',
+      color: map['color'] ?? '',
       imprint: map['imprint'] ?? '',
       shape: map['shape'] ?? '',
-      color: map['color'] ?? '',
+      strength: map['strength'] ?? '', // Initialize new properties from the map
+      purpose: map['purpose'] ?? '',
+      application: map['application'] ?? '',
+      side_effects: map['side_effects'] ?? '',
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'color': color,
+      'imprint': imprint,
+      'shape': shape,
+      'strength': strength, // Include new properties in the map
+      'purpose': purpose,
+      'application': application,
+      'side_effects': side_effects,
+    };
   }
 }

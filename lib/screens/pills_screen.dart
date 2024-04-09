@@ -1,66 +1,62 @@
 import 'package:flutter/material.dart';
 import 'pill.dart';
-import 'pill_details_screen.dart'; // Make sure to import the Pill Details Page
+import 'pill_details_screen.dart'; // Import your PillDetailsScreen
 
 class PillsPage extends StatefulWidget {
+  final Pill? detectedPill;  // Make detectedPill optional
+
+  PillsPage({Key? key, this.detectedPill}) : super(key: key);  // No 'required' keyword
+
   @override
   _PillsPageState createState() => _PillsPageState();
-
-  void addPill(Pill pill) {
-    _PillsPageState state = _PillsPageState();
-    state.addPill(pill);
-  }
 }
 
 class _PillsPageState extends State<PillsPage> {
-  final List<Pill> pills = [];
+  List<Pill> pills = [];
 
-  void addPill(Pill pill) {
-    setState(() {
-      pills.add(pill);
-    });
+  @override
+  void initState() {
+    super.initState();
+    // Initialize pills list with detectedPill if it is not null
+    if (widget.detectedPill != null) {
+      pills.add(widget.detectedPill!);
+    }
+    // Otherwise, pills will just be an empty list or you could initialize it with existing pills history
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        iconTheme: IconThemeData(color: Color(0xFF0A84FF)),
+        elevation: 0, // Remove app bar elevation
       ),
-      body: ListView.separated(
-        itemCount: pills.length,
-        itemBuilder: (context, index) {
-          final pill = pills[index];
-          return ListTile(
-            title: Text(
-              pill.name,
-              style: TextStyle(
-                color: Color(0xFF0A84FF),
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
+      body: Container(
+        color: Colors.white, // Set background color to white
+        child: ListView.builder(
+          itemCount: pills.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              onTap: () {
+                // Navigate to PillDetailsScreen when a pill is tapped
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PillDetailsScreen(pill: pills[index]), // Pass the selected pill to PillDetailsScreen
+                  ),
+                );
+              },
+              title: Text(
+                pills[index].name,
+                style: TextStyle(color: Colors.blue, fontSize: 20, fontWeight: FontWeight.bold),  // Set text color to blue, increase font size, and make it bold
               ),
-            ),
-            subtitle: Text(
-              '${pill.dosage} - ${pill.description}',
-              style: TextStyle(
-                color: Color(0xFF0A84FF),
-                fontSize: 17.5,
+              subtitle: Text(
+                '${pills[index].color} - ${pills[index].imprint} - ${pills[index].shape}',
+                style: TextStyle(color: Colors.blue),  // Set text color to blue
               ),
-            ),
-            onTap: () {
-              // Navigate to the Pill Details Page with the selected pill's details
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PillDetailsScreen(pill: pill),
-                ),
-              );
-            },
-          );
-        },
-        separatorBuilder: (context, index) => Divider(),
+            );
+          },
+        ),
       ),
     );
   }
