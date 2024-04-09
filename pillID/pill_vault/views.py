@@ -137,7 +137,25 @@ class PillDetailView(APIView):
 
         serializer = PillInfoSerializerVerbose(pill)
         return Response(serializer.data)
+
     
+def get_pill_detail(name):
+    # Construct a Q object for fields that should not be blank or None
+    non_empty_fields = Q(purpose__isnull=False, purpose__gt='') & \
+                        Q(application__isnull=False, application__gt='') & \
+                        Q(side_effects__isnull=False, side_effects__gt='') & \
+                        Q(image__isnull=False) & \
+                        Q(name__isnull=False, name__gt='') & \
+                        Q(imprint__isnull=False, imprint__gt='') & \
+                        Q(shape__isnull=False, shape__gt='') & \
+                        Q(color__isnull=False, color__gt='')
+
+    try:
+        # Adjust the query to filter instead of get, and add the non_empty_fields to the filter
+        return Pill.objects.filter(name=name).filter(non_empty_fields).first()
+    except Pill.DoesNotExist:
+        return None
+        
 # -------------- Registering Pills -------------- #
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -235,7 +253,7 @@ def perform_web_scrape(front_side, back_side, color, shape, user):
     if pills.exists():
         print("Matching Pill Found")
         matching_history.results.set(pills)
-        response_serializer = PillSerializer(pills, many=True)
+        response_serializer = PillInfoSerializerVerbose(pills, many=True)
         return response_serializer.data
 
     # Proceed with web scraping if no matching history with pill results was found or it was just created
@@ -275,7 +293,7 @@ def perform_web_scrape(front_side, back_side, color, shape, user):
             pill_scan=matching_history
         )
 
-    response_serializer = PillSerializer(pills, many=True)
+    response_serializer = PillInfoSerializerVerbose(pills, many=True)
     return response_serializer.data
 
 
@@ -482,9 +500,13 @@ class ImageUploadView(APIView):
             for pill_result in pill_results:
                 print(f"text({type(text)}): {text} -- imp({type(pill_result['imprint'])}): {pill_result['imprint']} -- {str(pill_result['imprint']) == str(text)}")
                 if str(pill_result['imprint']) == str(text):
+                    pill_detailed = get_pill_detail(pill_result['name'])
+                    if pill_detailed is None:
+                        return Response({'error': f'Detailed Pill Information Not Available.'}, status=status.HTTP_400_BAD_REQUEST)
                     print("Matching Pill Found")
+                    serializer = PillInfoSerializerVerbose(pill_detailed)
                     response_data["Pill Detected"] = True
-                    response_data["Pill"] = pill_result
+                    response_data["Pill"] = serializer.data
                     # result_json = json.dumps(response_data)
                     return Response(response_data, status=status.HTTP_200_OK)
 
