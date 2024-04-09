@@ -229,18 +229,23 @@ class MyDrug:
         #Step 2: Scrape using the link
         drugs_page = requests.get(url, timeout=5)
         content = BeautifulSoup(drugs_page.content, "html.parser")
+        print("content: ", content)
         
         outfile = open(oneDrug_file, "w")
         li_dict = {'intake_method':'', 'avoid_when':[], 'side_effects':{'common':[],'rare':[]}} #Append fields when ready
+        print("li_dict: ", li_dict)
 
         #Step 3: Record "method of intake"
         li_dict = self.intakeMethod(content,li_dict)
+        print("li_dict INTAKE METHOD: ", li_dict)
         
         #Step 4: Record 'avoid if'
         li_dict = self.avoidIf(content, li_dict)
+        print("li_dict AVOID IF: ", li_dict)
 
         #Step 5: Record "side_effects"
         li_dict = self.sideEffects(content, li_dict)
+        print("li_dict SIDE EFFECTS: ", li_dict)
 
         #Step 6: Dump and close files
         json.dump(li_dict, outfile, indent=2)
@@ -260,18 +265,19 @@ class MyDrug:
                               'Follow any specific instructions provided by your healthcare provider or pharmacist']
         intake_method_keywords = ['swallow','break','crush','food','milk','dissolve','tongue','chewable','N/A']
 
-        target_string = "How should I take" #header to start search from
+        target_string = "How should I" #header to start search from
         first_target_header = content.find('h2', string=lambda s: target_string in str(s))
+        print(f'first_target_header: {first_target_header}')
         if first_target_header : end_target_header = first_target_header.find_next("h2") #"end search" header
-        #print(f'{first_target_header} \n {end_target_header}')
+        # print(f'{first_target_header} \n {end_target_header}')
         
         if first_target_header and end_target_header:
             content_between_headers = first_target_header.find_all_next(['p','h2'])
-            #print(content_between_headers)
+            print(content_between_headers)
             for _, item in enumerate(content_between_headers):
-                #print(f'item : {item.text()}')
+                print(f'item : {item}')
                 for keyword in intake_method_keywords:
-                    #print(f'keyword : {keyword} ::: {item.text.lower()}')
+                    print(f'keyword : {keyword} ::: {item.text.lower()}')
                     if (item == end_target_header):
                         li_dict['intake_method'] = intake_method_list[intake_method_keywords.index('N/A')]
                         print(li_dict["intake_method"])
@@ -402,4 +408,21 @@ class MyDrug:
         return data
 
 
-    
+# if __name__ == "__main__":
+#     #Test
+#     # pill = MyDrug(front_side="M",
+#     #               back_side="30",
+#     #               color="blue",
+#     #               shape="round")
+#     # pill.quickSearch("allDrugs.json", {})
+#     # pill.detailedSearch(name="Oxycodone Hydrochloride", 
+#     #                     allDrugs_file="allDrugs.json", 
+#     #                     oneDrug_file="oneDrug.json")
+#     print("Done")
+
+#     pill_data = json.load(open("../data.json"))
+#     print(pill_data[0])
+#     for pill_idx in range(len(pill_data)):
+#         pill_name = pill_data[pill_idx]['Fields']['name']
+
+        

@@ -1,0 +1,98 @@
+{
+  "Oxycodone Hydrochloride": {
+    "Image": "https://www.drugs.com/images/pills/custom/pill32438-1/oxycodone-hydrochloride.png",
+    "Link": "https://www.drugs.com/oxycodone.html",
+    "Strength": "30 mg",
+    "Imprint": "M 30",
+    "Color": "Blue",
+    "Shape": "Round"
+  },
+  "Amphetamine and Dextroamphetamine": {
+    "Image": "https://www.drugs.com/images/pills/fio/MKR88940/amphetamine-and-dextroamphetamine.JPG",
+    "Link": "https://www.drugs.com/mtm/amphetamine-and-dextroamphetamine.html",
+    "Strength": "30 mg",
+    "Imprint": "M 30",
+    "Color": "White",
+    "Shape": "Eight-sided"
+  },
+  "Morphine Sulfate Extended-Release": {
+    "Image": "https://www.drugs.com/images/pills/nlm/004068330.jpg",
+    "Link": "https://www.drugs.com/morphine.html",
+    "Strength": "30 mg",
+    "Imprint": "30 M",
+    "Color": "Purple",
+    "Shape": "Round"
+  },
+  "Clorazepate Dipotassium": {
+    "Image": "https://www.drugs.com/images/pills/nlm/003780030.jpg",
+    "Link": "https://www.drugs.com/mtm/clorazepate.html",
+    "Strength": "3.75 mg",
+    "Imprint": "M 30",
+    "Color": "Blue",
+    "Shape": "Round"
+  },
+  "Morphine Sulfate": {
+    "Image": "https://www.drugs.com/images/pills/custom/pill34967-1/morphine-sulfate.png",
+    "Link": "https://www.drugs.com/morphine.html",
+    "Strength": "30 mg",
+    "Imprint": "M 30",
+    "Color": "White",
+    "Shape": "Round"
+  },
+  "Vyvanse": {
+    "Image": "https://www.drugs.com/images/pills/mtm/594170103_PB.jpg",
+    "Link": "https://www.drugs.com/vyvanse.html",
+    "Strength": "30 mg",
+    "Imprint": "S489 30 mg",
+    "Color": "Orange & White",
+    "Shape": "Capsule/Oblong"
+  },
+  "Gabapentin": {
+    "Image": "/img/pillid/no-image-placeholder.png",
+    "Link": "https://www.drugs.com/gabapentin.html",
+    "Strength": "300 mg",
+    "Imprint": "300 mg 235",
+    "Color": "Yellow",
+    "Shape": "Capsule/Oblong"
+  },
+  "Amphetamine and Dextroamphetamine Extended Release": {
+    "Image": "/img/pillid/no-image-placeholder.png",
+    "Link": "https://www.drugs.com/mtm/amphetamine-and-dextroamphetamine.html",
+    "Strength": "30 mg",
+    "Imprint": "G AMP XR 30 mg 034",
+    "Color": "Gold / Orange",
+    "Shape": "Capsule/Oblong"
+  },
+  "Adderall XR": {
+    "Image": "https://www.drugs.com/images/pills/mtm/Adderall%20XR%2030%20mg.jpg",
+    "Link": "https://www.drugs.com/mtm/adderall-xr.html",
+    "Strength": "30 mg",
+    "Imprint": "ADDERALL XR 30 mg",
+    "Color": "Orange",
+    "Shape": "Capsule/Oblong"
+  },
+  "Temazepam": {
+    "Image": "https://www.drugs.com/images/pills/nlm/67877-0147-01_NLMIMAGE10_D61DEB0F.jpg",
+    "Link": "https://www.drugs.com/temazepam.html",
+    "Strength": "30 mg",
+    "Imprint": "30 mg Novel 123",
+    "Color": "White",
+    "Shape": "Capsule/Oblong"
+  },
+  "Mirtazapine": {
+    "Image": "https://www.drugs.com/images/pills/fio/ATX02480/mirtazapine.JPG",
+    "Link": "https://www.drugs.com/mirtazapine.html",
+    "Strength": "30 mg",
+    "Imprint": "APO MI 30",
+    "Color": "Pink",
+    "Shape": "Oval"
+  },
+  "Lansoprazole Delayed-Release": {
+    "Image": "https://www.drugs.com/images/pills/fio/PGO02630/lansoprazole-delayed-release.JPG",
+    "Link": "https://www.drugs.com/lansoprazole.html",
+    "Strength": "30 mg",
+    "Imprint": "A263 30 mg A263 30 mg",
+    "Color": "Blue & White",
+    "Shape": "Capsule/Oblong"
+  }
+}

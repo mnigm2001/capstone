@@ -4,6 +4,7 @@ from .import models
 
 class pillAdmin(admin.ModelAdmin):
     list_display = ['name', 'shape']
+    search_fields = ['name', 'imprint']
 
 
 # Register your models here.

@@ -19,6 +19,7 @@ urlpatterns = [
     path('api/register-pill/', views.register_pill, name='register-pill'),
     path('api/scrape/', views.web_scrape, name='web-scrape'),
     #  path('api/scan-img/', views.scan_img, name='img-scan'),
-    path('api/scan-image/', views.ImageUploadView.as_view(), name='upload-image')
-
+    path('api/scan-image/', views.ImageUploadView.as_view(), name='upload-image'),
+    path('api/get-pill-info/', views.PillDetailView.as_view(), name='pill-detail')
 ]
+

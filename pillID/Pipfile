@@ -16,7 +16,6 @@ opencv-python = "*"
 pandas = "*"
 openai = "*"
 
-
 [dev-packages]
 
 [requires]

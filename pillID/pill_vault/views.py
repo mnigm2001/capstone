@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.contrib.auth.models import User, AnonymousUser
+from django.db.models import Q
 
 # For Uploading Images
 from rest_framework.parsers import FileUploadParser
@@ -109,8 +110,19 @@ class PillReminderViewSet(viewsets.ModelViewSet):
 
 class PillDetailView(APIView):
     def get_object(self, name):
+        # Construct a Q object for fields that should not be blank or None
+        non_empty_fields = Q(purpose__isnull=False, purpose__gt='') & \
+                           Q(application__isnull=False, application__gt='') & \
+                           Q(side_effects__isnull=False, side_effects__gt='') & \
+                           Q(image__isnull=False) & \
+                           Q(name__isnull=False, name__gt='') & \
+                           Q(imprint__isnull=False, imprint__gt='') & \
+                           Q(shape__isnull=False, shape__gt='') & \
+                           Q(color__isnull=False, color__gt='')
+
         try:
-            return Pill.objects.get(name=name)
+            # Adjust the query to filter instead of get, and add the non_empty_fields to the filter
+            return Pill.objects.filter(name=name).filter(non_empty_fields).first()
         except Pill.DoesNotExist:
             return None
 
@@ -121,7 +133,7 @@ class PillDetailView(APIView):
 
         pill = self.get_object(name)
         if pill is None:
-            return Response({'error': f'Pill with name {name} not found.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': f'Detailed Pill Information Not Available.'}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = PillInfoSerializerVerbose(pill)
         return Response(serializer.data)

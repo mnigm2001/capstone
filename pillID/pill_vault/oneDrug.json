@@ -1,0 +1,34 @@
+{
+  "intake_method": "Take the pill with food",
+  "avoid_when": [
+    "severe asthma or breathing problems",
+    "a blockage in your stomach or intestines",
+    "breathing problems, sleep apnea",
+    "a head injury, brain tumor, or seizures",
+    "drug or alcohol addiction, or mental illness",
+    "lung disease",
+    "liver or kidney disease",
+    "thyroid disorder",
+    "adrenal disease (such as Addison's disease",
+    "urination problems",
+    "problems with your gallbladder or pancreas"
+  ],
+  "side_effects": {
+    "common": [
+      "drowsiness, dizziness, tiredness",
+      "headache",
+      "constipation, stomach pain, nausea, vomiting",
+      "itching, red eyes, or flushing"
+    ],
+    "rare": [
+      "noisy breathing, sighing, shallow breathing, breathing that stops during sleep",
+      "aslow heart rateor weak pulse",
+      "cold, clammy skin",
+      "a light-headed feeling, like you might pass out",
+      "confusion, unusual thoughts or behavior",
+      "seizure (convulsions)",
+      "low cortisol levels- nausea, vomiting, loss of appetite, dizziness, worsening tiredness or weakness",
+      "high levels of serotonin in the body- agitation, hallucinations, fever, sweating, shivering, fast heart rate, muscle stiffness, twitching, loss of coordination, nausea, vomiting, diarrhea"
+    ]
+  }
+}

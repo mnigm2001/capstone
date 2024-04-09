@@ -107,8 +107,9 @@ class Pill(models.Model):
         ('Three-sided', 'Three-sided'),
         ('U-shape', 'U-shape'),
     ]
+    
     name = models.CharField(max_length=255)
-    # image = models.ImageField(upload_to='images/')
+    image = models.ImageField(upload_to='images/', blank=True, null=True)
     color = models.CharField(max_length=255, choices=COLOR_OPTIONS)
     strength = models.CharField(max_length=255)
     imprint = models.CharField(max_length=255)
@@ -116,9 +117,11 @@ class Pill(models.Model):
 
     # Optional fields
     generic_name = models.CharField(max_length=255, blank=True)
+    purpose = models.CharField(max_length=1024, blank=True)
+    application = models.CharField(max_length=1024, blank=True)
     size = models.SmallIntegerField(null=True, blank=True)
     symptoms = models.CharField(max_length=255, blank=True)
-    side_effects = models.CharField(max_length=255, blank=True)
+    side_effects = models.CharField(max_length=1024, blank=True)
     prescription = models.BooleanField(default=False)
 
     # ## Aditional fields
