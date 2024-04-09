@@ -452,7 +452,7 @@ class ImageUploadView(APIView):
                 if str(pill_result['imprint']) == str(text):
                     print("Matching Pill Found")
                     response_data["Pill Detected"] = True
-                    response_data["Probable pills"] = pill_result
+                    response_data["Pill"] = pill_result
                     result_json = json.dumps(response_data,indent=2)
                     return Response(result_json, status=status.HTTP_200_OK)
 

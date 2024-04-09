@@ -116,10 +116,11 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'pill_vault',
         'HOST': 'localhost',
-        'USER': 'alasfarm',
-        'PASSWORD': 'Moman14-14-14',
+        'USER': 'root',
+        'PASSWORD': 'XT45cc=7pC!=',
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

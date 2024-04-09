@@ -1,3 +1,4 @@
 ./pillID/pillID/settings.py
 **__pycache__**
 ./pillID/pillID/__pycache__/settings.cpython-310.pyc
+./pillID/pill_vault/pre_processed_imgs

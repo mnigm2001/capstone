@@ -24,8 +24,8 @@ SAVE_EDGES_IMGS = True
 
 RUN_ALL_TESTS = True
 TEST_IMG_DIR = '/home/mnigm2001/capstone/backend/imagerecog/Pills'
-PRE_PROCESSED_IMGS_DIR = '/home/mnigm2001/capstone/backend/imagerecog/pre_processed_imgs'
-
+# PRE_PROCESSED_IMGS_DIR = '/home/mnigm2001/capstone/backend/imagerecog/pre_processed_imgs'
+PRE_PROCESSED_IMGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pre_processed_imgs')
 
 
 def detect_labels(image_bytes, client):
