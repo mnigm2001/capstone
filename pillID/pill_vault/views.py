@@ -21,7 +21,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 
 from .models import User, Pill, PillIntake, PillReminder, PillScanHistory, UserScanHistory
-from .serializers import UserSerializer, PillSerializer, PillIntakeSerializer, PillReminderSerializer, ScrapedPillSerializer
+from .serializers import UserSerializer, PillSerializer, PillIntakeSerializer, PillReminderSerializer, ScrapedPillSerializer, PillInfoSerializerVerbose
 from .permissions import IsOwnerOrAdmin
 
 from .webscraper import MyDrug
@@ -30,6 +30,7 @@ from .imgproc_colour_detection import colour_detection
 from .imgproc_top import process_image
 
 from django.conf import settings
+from django.http import Http404
 
 class CustomObtainAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
@@ -106,6 +107,25 @@ class PillReminderViewSet(viewsets.ModelViewSet):
         return PillReminder.objects.filter(pill_intake__user=user)
 
 
+class PillDetailView(APIView):
+    def get_object(self, name):
+        try:
+            return Pill.objects.get(name=name)
+        except Pill.DoesNotExist:
+            return None
+
+    def get(self, request, format=None):
+        name = request.query_params.get('name', None)
+        if not name:
+            return Response({'error': 'The name parameter is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        pill = self.get_object(name)
+        if pill is None:
+            return Response({'error': f'Pill with name {name} not found.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = PillInfoSerializerVerbose(pill)
+        return Response(serializer.data)
+    
 # -------------- Registering Pills -------------- #
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -372,8 +392,8 @@ class ImageUploadView(APIView):
         ## Process Image Results
         #########################
         if all(result['detected_text'] is None for result in img_proc_results):
-            result_json = json.dumps(response_data)
-            return Response(result_json, status=status.HTTP_200_OK)
+            # result_json = json.dumps(response_data)
+            return Response(response_data, status=status.HTTP_200_OK)
         
         print(f"\n\n{'-'*20} Interpreting Processing Results {'-'*20}")
         all_detected_text = []
@@ -453,14 +473,14 @@ class ImageUploadView(APIView):
                     print("Matching Pill Found")
                     response_data["Pill Detected"] = True
                     response_data["Pill"] = pill_result
-                    result_json = json.dumps(response_data)
-                    return Response(result_json, status=status.HTTP_200_OK)
+                    # result_json = json.dumps(response_data)
+                    return Response(response_data, status=status.HTTP_200_OK)
 
 
 
-        result_json = json.dumps(response_data)
-        print(result_json)
-        return Response(result_json, status=status.HTTP_200_OK)
+        # result_json = json.dumps(response_data)
+        # print(result_json)
+        return Response(response_data, status=status.HTTP_200_OK)
     
         
 # {
