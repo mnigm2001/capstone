@@ -372,7 +372,7 @@ class ImageUploadView(APIView):
         ## Process Image Results
         #########################
         if all(result['detected_text'] is None for result in img_proc_results):
-            result_json = json.dumps(response_data,indent=2)
+            result_json = json.dumps(response_data)
             return Response(result_json, status=status.HTTP_200_OK)
         
         print(f"\n\n{'-'*20} Interpreting Processing Results {'-'*20}")
@@ -453,12 +453,12 @@ class ImageUploadView(APIView):
                     print("Matching Pill Found")
                     response_data["Pill Detected"] = True
                     response_data["Pill"] = pill_result
-                    result_json = json.dumps(response_data,indent=2)
+                    result_json = json.dumps(response_data)
                     return Response(result_json, status=status.HTTP_200_OK)
 
 
 
-        result_json = json.dumps(response_data,indent=2)
+        result_json = json.dumps(response_data)
         print(result_json)
         return Response(result_json, status=status.HTTP_200_OK)
     
